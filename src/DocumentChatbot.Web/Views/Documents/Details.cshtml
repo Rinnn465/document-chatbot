@@ -1,0 +1,30 @@
+@model DocumentSummary
+@{
+    ViewData["Title"] = Model.Title;
+}
+
+<p><a href="/Documents">&larr; Back to documents</a></p>
+
+<h1>@Model.Title</h1>
+<span class="status-badge status-@Model.Status">@Model.Status</span>
+
+@if (!string.IsNullOrWhiteSpace(Model.ProcessingError))
+{
+    <div class="alert alert-danger">@Model.ProcessingError</div>
+}
+
+<table>
+    <tbody>
+        <tr><th>File</th><td>@Model.OriginalFileName (@Model.FileType)</td></tr>
+        <tr><th>Chapter</th><td>@(Model.Chapter ?? "-")</td></tr>
+        <tr><th>Size</th><td>@(Model.FileSizeBytes / 1024) KB</td></tr>
+        <tr><th>Chunks indexed</th><td>@Model.ChunkCount</td></tr>
+        <tr><th>Uploaded by</th><td>@Model.UploadedByName</td></tr>
+        <tr><th>Uploaded at</th><td>@Model.UploadedAtUtc.ToLocalTime().ToString("g")</td></tr>
+    </tbody>
+</table>
+
+<form method="post" action="/Documents/Delete/@Model.Id" onsubmit="return confirm('Delete this document?');">
+    @Html.AntiForgeryToken()
+    <button type="submit" class="btn btn-danger">Delete document</button>
+</form>

@@ -1,0 +1,49 @@
+@model IReadOnlyList<DocumentSummary>
+@{
+    ViewData["Title"] = "Documents";
+}
+
+<div style="display:flex; justify-content:space-between; align-items:center;">
+    <h1>Documents</h1>
+    <a class="btn" href="/Documents/Upload">Upload document</a>
+</div>
+
+@if (!Model.Any())
+{
+    <p>No documents have been uploaded yet.</p>
+}
+else
+{
+    <table>
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Chapter</th>
+                <th>File</th>
+                <th>Status</th>
+                <th>Chunks</th>
+                <th>Uploaded</th>
+                <th></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var document in Model)
+        {
+            <tr>
+                <td><a href="/Documents/Details/@document.Id">@document.Title</a></td>
+                <td>@(document.Chapter ?? "-")</td>
+                <td>@document.OriginalFileName</td>
+                <td><span class="status-badge status-@document.Status">@document.Status</span></td>
+                <td>@document.ChunkCount</td>
+                <td>@document.UploadedAtUtc.ToLocalTime().ToString("g")</td>
+                <td>
+                    <form method="post" action="/Documents/Delete/@document.Id" onsubmit="return confirm('Delete this document?');" style="display:inline;">
+                        @Html.AntiForgeryToken()
+                        <button type="submit" class="btn btn-danger">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

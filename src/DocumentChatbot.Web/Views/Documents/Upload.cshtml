@@ -1,0 +1,31 @@
+@model DocumentUploadViewModel
+@{
+    ViewData["Title"] = "Upload document";
+}
+
+<h1>Upload document</h1>
+
+<form method="post" enctype="multipart/form-data" asp-action="Upload">
+    @Html.AntiForgeryToken()
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+
+    <div class="field">
+        <label asp-for="Title"></label>
+        <input asp-for="Title" type="text" />
+        <span asp-validation-for="Title"></span>
+    </div>
+
+    <div class="field">
+        <label asp-for="Chapter"></label>
+        <input asp-for="Chapter" type="text" />
+        <span asp-validation-for="Chapter"></span>
+    </div>
+
+    <div class="field">
+        <label asp-for="File"></label>
+        <input asp-for="File" type="file" accept=".pdf,.docx,.pptx" />
+        <span asp-validation-for="File"></span>
+    </div>
+
+    <button type="submit" class="btn">Upload &amp; index</button>
+</form>
