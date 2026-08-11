@@ -19,7 +19,7 @@ coverage/
 
 uploads/
 chroma_db/
-models/
+rag-service/models/
 
 __pycache__/
 *.pyc
