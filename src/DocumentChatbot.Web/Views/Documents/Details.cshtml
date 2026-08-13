@@ -1,30 +1,258 @@
-@model DocumentSummary
+﻿@model Document
+
 @{
     ViewData["Title"] = Model.Title;
+
+    var statusClass = Model.Status switch
+    {
+        DocumentStatus.Indexed => "status-indexed",
+        DocumentStatus.Failed => "status-failed",
+        _ => "status-processing"
+    };
 }
 
-<p><a href="/Documents">&larr; Back to documents</a></p>
+<div class="document-page">
 
-<h1>@Model.Title</h1>
-<span class="status-badge status-@Model.Status">@Model.Status</span>
+    <div class="details-container">
 
-@if (!string.IsNullOrWhiteSpace(Model.ProcessingError))
-{
-    <div class="alert alert-danger">@Model.ProcessingError</div>
-}
+        <div class="mb-4">
 
-<table>
-    <tbody>
-        <tr><th>File</th><td>@Model.OriginalFileName (@Model.FileType)</td></tr>
-        <tr><th>Chapter</th><td>@(Model.Chapter ?? "-")</td></tr>
-        <tr><th>Size</th><td>@(Model.FileSizeBytes / 1024) KB</td></tr>
-        <tr><th>Chunks indexed</th><td>@Model.ChunkCount</td></tr>
-        <tr><th>Uploaded by</th><td>@Model.UploadedByName</td></tr>
-        <tr><th>Uploaded at</th><td>@Model.UploadedAtUtc.ToLocalTime().ToString("g")</td></tr>
-    </tbody>
-</table>
+            <a asp-action="Index"
+               class="text-decoration-none text-secondary">
+                ← Back to Documents
+            </a>
 
-<form method="post" action="/Documents/Delete/@Model.Id" onsubmit="return confirm('Delete this document?');">
-    @Html.AntiForgeryToken()
-    <button type="submit" class="btn btn-danger">Delete document</button>
-</form>
+        </div>
+
+        <div class="mb-4">
+
+            <h1 class="details-title">
+                @Model.Title
+            </h1>
+
+            <div class="details-subtitle">
+                @Model.Subject?.Code
+                ·
+                @(Model.Chapter?.Name ?? "No chapter assigned")
+            </div>
+
+        </div>
+
+        <!-- Statistics -->
+
+        <div class="details-stats">
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    File Type
+                </div>
+
+                <div class="stat-value">
+                    @Model.FileType
+                </div>
+
+            </div>
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    Status
+                </div>
+
+                <div>
+                    <span class="status-badge @statusClass">
+                        ● @Model.Status
+                    </span>
+                </div>
+
+            </div>
+
+            <div class="stat-card">
+
+                <div class="stat-label">
+                    Indexed Chunks
+                </div>
+
+                <div class="stat-value">
+                    @Model.ChunkCount
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- Document information -->
+
+        <div class="document-card mb-4">
+
+            <div class="document-card-header">
+                Document Information
+            </div>
+
+            <div class="document-card-body">
+
+                <dl class="row details-list mb-0">
+
+                    <dt class="col-sm-3">
+                        Subject
+                    </dt>
+
+                    <dd class="col-sm-9">
+                        @Model.Subject?.Code - @Model.Subject?.Name
+                    </dd>
+
+                    <dt class="col-sm-3">
+                        Chapter
+                    </dt>
+
+                    <dd class="col-sm-9">
+                        @(Model.Chapter?.Name ?? "-")
+                    </dd>
+
+                    <dt class="col-sm-3">
+                        Original file
+                    </dt>
+
+                    <dd class="col-sm-9">
+                        @Model.OriginalFileName
+
+                        <span class="text-muted">
+                            (@Model.FileType,
+                            @((Model.FileSizeBytes / 1024.0).ToString("N0")) KB)
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-3">
+                        Uploaded by
+                    </dt>
+
+                    <dd class="col-sm-9">
+                        @Model.UploadedByName
+                    </dd>
+
+                    <dt class="col-sm-3">
+                        Uploaded at
+                    </dt>
+
+                    <dd class="col-sm-9">
+                        @Model.UploadedAtUtc
+                    </dd>
+
+                    <dt class="col-sm-3">
+                        Processing status
+                    </dt>
+
+                    <dd class="col-sm-9">
+
+                        <span class="status-badge @statusClass">
+                            ● @Model.Status
+                        </span>
+
+                        @if (Model.Status == DocumentStatus.Failed &&
+                                                Model.ProcessingError is not null)
+                        {
+                            <div class="alert alert-danger mt-3 mb-0">
+                                <strong>Processing error:</strong>
+                                @Model.ProcessingError
+                            </div>
+                        }
+
+                    </dd>
+
+                </dl>
+
+            </div>
+
+        </div>
+
+        <!-- Chunks -->
+
+        <div class="chunks-card">
+
+            <div class="chunks-header">
+
+                <h3>
+                    Indexed Content
+                </h3>
+
+                <p>
+                    Document content split into searchable text chunks.
+                </p>
+
+            </div>
+
+            @if (!Model.Chunks.Any())
+            {
+                <div class="empty-state">
+
+                    <div class="empty-state-icon">
+                        📝
+                    </div>
+
+                    <h4>No chunks indexed</h4>
+
+                    <p>
+                        This document does not contain any indexed chunks yet.
+                    </p>
+
+                </div>
+            }
+            else
+            {
+                <div class="accordion accordion-flush"
+                     id="chunksAccordion">
+
+                    @foreach (var chunk in Model.Chunks)
+                    {
+                        <div class="accordion-item">
+
+                            <h2 class="accordion-header"
+                                id="heading-@chunk.Id">
+
+                                <button class="accordion-button collapsed"
+                                        type="button"
+                                        data-bs-toggle="collapse"
+                                        data-bs-target="#chunk-@chunk.Id"
+                                        aria-expanded="false"
+                                        aria-controls="chunk-@chunk.Id">
+
+                                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
+
+                                        <span>
+                                            Chunk #@(chunk.ChunkIndex + 1)
+                                        </span>
+
+                                        <span class="text-muted small">
+                                            @chunk.CharCount characters
+                                        </span>
+
+                                    </div>
+
+                                </button>
+
+                            </h2>
+
+                            <div id="chunk-@chunk.Id"
+                                 class="accordion-collapse collapse"
+                                 aria-labelledby="heading-@chunk.Id"
+                                 data-bs-parent="#chunksAccordion">
+
+                                <div class="accordion-body"
+                                     style="white-space: pre-wrap;">
+                                    @chunk.Content
+                                </div>
+
+                            </div>
+
+                        </div>
+                    }
+
+                </div>
+            }
+
+        </div>
+
+    </div>
+
+</div>

@@ -1,49 +1,256 @@
-@model IReadOnlyList<DocumentSummary>
+﻿@model List<Document>
+
 @{
     ViewData["Title"] = "Documents";
+
+    var subjects = ViewBag.Subjects as List<Subject>
+                   ?? new List<Subject>();
+
+    int? selectedSubjectId = ViewBag.SelectedSubjectId;
 }
 
-<div style="display:flex; justify-content:space-between; align-items:center;">
-    <h1>Documents</h1>
-    <a class="btn" href="/Documents/Upload">Upload document</a>
-</div>
+<div class="document-page">
 
-@if (!Model.Any())
-{
-    <p>No documents have been uploaded yet.</p>
-}
-else
-{
-    <table>
-        <thead>
-            <tr>
-                <th>Title</th>
-                <th>Chapter</th>
-                <th>File</th>
-                <th>Status</th>
-                <th>Chunks</th>
-                <th>Uploaded</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var document in Model)
+    <div class="document-header">
+
+        <div class="document-header-content">
+
+            <h1>Course Documents</h1>
+
+            <p>
+                Manage and access course learning materials.
+            </p>
+
+        </div>
+
+        @if (User.IsInRole("SubjectLeader"))
         {
-            <tr>
-                <td><a href="/Documents/Details/@document.Id">@document.Title</a></td>
-                <td>@(document.Chapter ?? "-")</td>
-                <td>@document.OriginalFileName</td>
-                <td><span class="status-badge status-@document.Status">@document.Status</span></td>
-                <td>@document.ChunkCount</td>
-                <td>@document.UploadedAtUtc.ToLocalTime().ToString("g")</td>
-                <td>
-                    <form method="post" action="/Documents/Delete/@document.Id" onsubmit="return confirm('Delete this document?');" style="display:inline;">
-                        @Html.AntiForgeryToken()
-                        <button type="submit" class="btn btn-danger">Delete</button>
-                    </form>
-                </td>
-            </tr>
+            <a asp-action="Upload"
+               class="btn btn-primary px-4">
+                + Upload Document
+            </a>
         }
-        </tbody>
-    </table>
-}
+
+    </div>
+
+    @if (TempData["Success"] is string successMessage)
+    {
+        <div class="alert alert-success border-0 shadow-sm">
+            @successMessage
+        </div>
+    }
+
+    <div class="document-card">
+
+        <div class="document-card-header">
+
+            <div class="document-filter mb-0">
+
+                <span class="fw-semibold">
+                    Filter by subject
+                </span>
+
+                <form method="get">
+
+                    <select name="subjectId"
+                            class="form-select"
+                            onchange="this.form.submit()">
+
+                        <option value="">
+                            All subjects
+                        </option>
+
+                        @foreach (var s in subjects)
+                        {
+                            if (selectedSubjectId == s.Id)
+                            {
+                                <option value="@s.Id" selected>
+                                    @s.Code - @s.Name
+                                </option>
+                            }
+                            else
+                            {
+                                <option value="@s.Id">
+                                    @s.Code - @s.Name
+                                </option>
+                            }
+                        }
+
+                    </select>
+
+                </form>
+
+            </div>
+
+        </div>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state">
+
+                <div class="empty-state-icon">
+                    📄
+                </div>
+
+                <h4>No documents found</h4>
+
+                <p>
+                    There are currently no course documents available.
+                </p>
+
+                @if (User.IsInRole("SubjectLeader"))
+                {
+                    <a asp-action="Upload"
+                       class="btn btn-primary mt-2">
+                        Upload your first document
+                    </a>
+                }
+
+            </div>
+        }
+        else
+        {
+            <div class="table-responsive">
+
+                <table class="table document-table">
+
+                    <thead>
+                        <tr>
+                            <th>Document</th>
+                            <th>Subject</th>
+                            <th>Chapter</th>
+                            <th>Type</th>
+                            <th>Status</th>
+                            <th>Chunks</th>
+                            <th>Uploaded by</th>
+                            <th>Uploaded</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+
+                        @foreach (var doc in Model)
+                        {
+                            <tr>
+
+                                <td>
+                                    <div class="document-title">
+                                        @doc.Title
+                                    </div>
+
+                                    <div class="document-subtitle">
+                                        @doc.OriginalFileName
+                                    </div>
+                                </td>
+
+                                <td>
+                                    <span class="fw-semibold">
+                                        @doc.Subject?.Code
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @(doc.Chapter?.Name ?? "-")
+                                </td>
+
+                                <td>
+                                    @doc.FileType
+                                </td>
+
+                                <td>
+
+                                    @{
+                                        var statusClass = doc.Status switch
+                                        {
+                                            DocumentStatus.Indexed =>
+                                            "status-indexed",
+
+                                            DocumentStatus.Failed =>
+                                            "status-failed",
+
+                                            _ =>
+                                            "status-processing"
+                                        };
+                                    }
+
+                                    <span class="status-badge @statusClass">
+
+                                        @if (doc.Status == DocumentStatus.Indexed)
+                                        {
+                                            <span>●</span>
+                                        }
+                                        else if (doc.Status == DocumentStatus.Failed)
+                                        {
+                                            <span>●</span>
+                                        }
+                                        else
+                                        {
+                                            <span>●</span>
+                                        }
+
+                                        @doc.Status
+
+                                    </span>
+
+                                </td>
+
+                                <td>
+                                    <span class="fw-semibold">
+                                        @doc.ChunkCount
+                                    </span>
+                                </td>
+
+                                <td>
+                                    @doc.UploadedByName
+                                </td>
+
+                                <td>
+                                    <span class="text-muted">
+                                        @doc.UploadedAtUtc
+                                    </span>
+                                </td>
+
+                                <td>
+
+                                    <div class="d-flex gap-1">
+
+                                        <a asp-action="Details"
+                                           asp-route-id="@doc.Id"
+                                           class="btn btn-sm btn-outline-secondary">
+                                            View
+                                        </a>
+
+                                        @if (User.IsInRole("SubjectLeader"))
+                                        {
+                                            <form asp-action="Delete"
+                                                  asp-route-id="@doc.Id"
+                                                  method="post"
+                                                  class="d-inline"
+                                                  onsubmit="return confirm('Delete this document?');">
+
+                                                <button type="submit"
+                                                        class="btn btn-sm btn-outline-danger">
+                                                    Delete
+                                                </button>
+
+                                            </form>
+                                        }
+
+                                    </div>
+
+                                </td>
+
+                            </tr>
+                        }
+
+                    </tbody>
+
+                </table>
+
+            </div>
+        }
+
+    </div>
+
+</div>
