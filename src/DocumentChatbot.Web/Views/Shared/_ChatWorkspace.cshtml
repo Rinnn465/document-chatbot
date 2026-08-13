@@ -1,0 +1,130 @@
+@{
+    var displayName = User.Identity?.Name ?? "Student";
+    var initial = displayName.Trim().Length > 0
+        ? displayName.Trim()[0].ToString().ToUpperInvariant()
+        : "S";
+}
+
+<section class="chat-workspace" data-chat-workspace aria-label="Trợ lý học tập PRN222">
+    <aside class="chat-sidebar" aria-label="Lịch sử hội thoại">
+        <div class="chat-sidebar-brand">
+            <span class="chat-brand-mark" aria-hidden="true">P2</span>
+            <span>
+                <strong>PRN222 Assistant</strong>
+                <small>Hỏi đáp theo tài liệu</small>
+            </span>
+        </div>
+
+        <button type="button" class="new-chat-button" data-new-chat disabled>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" />
+            </svg>
+            <span>Đoạn Chat Mới</span>
+        </button>
+
+        <div class="session-heading">
+            <span>Đoạn chat gần đây</span>
+        </div>
+
+        <nav class="session-list" data-session-list aria-label="Các phiên chat">
+            <div class="session-skeleton" data-session-loading aria-hidden="true">
+                <i></i><i></i><i></i>
+            </div>
+        </nav>
+
+        <div class="chat-sidebar-account">
+            <span class="student-avatar" aria-hidden="true">@initial</span>
+            <span>
+                <strong>@displayName</strong>
+                <small>Student · PRN222</small>
+            </span>
+        </div>
+    </aside>
+
+    <main class="chat-panel">
+        <header class="chat-panel-header">
+            <button type="button" class="mobile-sidebar-toggle" data-sidebar-toggle aria-label="Mở lịch sử chat">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
+            </button>
+            <div class="chat-current-title">
+                <h1 data-session-title>Cuộc trò chuyện mới</h1>
+                <span>PRN222 · Câu trả lời có trích dẫn</span>
+            </div>
+            <div class="connection-state" data-connection-state data-state="connecting" role="status">
+                <span class="connection-dot" aria-hidden="true"></span>
+                <span data-connection-label>Đang kết nối</span>
+            </div>
+        </header>
+
+        <div class="chat-feed" data-chat-feed aria-live="polite" aria-busy="true">
+            <section class="chat-welcome" data-chat-empty>
+                <span class="assistant-glyph" aria-hidden="true">PRN</span>
+                <h2>Hôm nay bạn muốn hỏi gì?</h2>
+                <p>Trợ lý chỉ trả lời dựa trên tài liệu PRN222 đã được Subject Leader lập chỉ mục.</p>
+
+                <div class="prompt-list" aria-label="Câu hỏi gợi ý">
+                    <button type="button" data-suggestion="Dependency Injection trong ASP.NET Core hoạt động như thế nào?">
+                        Dependency Injection hoạt động như thế nào?
+                    </button>
+                    <button type="button" data-suggestion="Middleware được thực thi theo thứ tự nào trong ASP.NET Core?">
+                        Giải thích thứ tự của Middleware pipeline
+                    </button>
+                </div>
+            </section>
+        </div>
+
+        <div class="chat-live-status" data-live-status hidden>
+            <span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>
+            <span data-live-status-text></span>
+        </div>
+
+        <form class="chat-input" data-chat-form>
+            <label class="sr-only" for="chat-question">Câu hỏi</label>
+            <textarea id="chat-question" name="question" rows="1" maxlength="2000"
+                      placeholder="Nhập câu hỏi về tài liệu PRN222..." disabled></textarea>
+            <div class="chat-input-footer">
+                <span><kbd>Enter</kbd> gửi · <kbd>Shift</kbd> + <kbd>Enter</kbd> xuống dòng</span>
+                <span class="character-count"><span data-character-count>0</span>/2000</span>
+                <button type="submit" class="send-message" disabled aria-label="Gửi câu hỏi">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                        <path d="M5 12h13M13 6l6 6-6 6" />
+                    </svg>
+                </button>
+            </div>
+        </form>
+        <p class="chat-disclaimer">AI có thể trả lời chưa chính xác. Hãy kiểm tra lại nguồn được trích dẫn.</p>
+    </main>
+
+    <dialog class="session-dialog" data-rename-dialog aria-labelledby="rename-session-title">
+        <form class="session-dialog-form" data-rename-form>
+            <header>
+                <h2 id="rename-session-title">Đổi tên đoạn chat</h2>
+                <p>Đặt một tên ngắn để dễ tìm lại cuộc trò chuyện.</p>
+            </header>
+            <label for="rename-session-input">Tên đoạn chat</label>
+            <input id="rename-session-input" type="text" maxlength="100" autocomplete="off"
+                   data-rename-input required />
+            <p class="session-dialog-error" data-rename-error hidden></p>
+            <footer>
+                <button type="button" class="dialog-button dialog-button-secondary" data-rename-cancel>Hủy</button>
+                <button type="submit" class="dialog-button dialog-button-primary" data-rename-submit>Lưu tên</button>
+            </footer>
+        </form>
+    </dialog>
+
+    <dialog class="session-dialog" data-delete-dialog aria-labelledby="delete-session-title">
+        <form class="session-dialog-form" data-delete-form>
+            <header>
+                <h2 id="delete-session-title">Xóa đoạn chat?</h2>
+                <p>Đoạn chat <strong data-delete-session-name></strong> cùng toàn bộ tin nhắn sẽ bị xóa.</p>
+            </header>
+            <p class="session-dialog-error" data-delete-error hidden></p>
+            <footer>
+                <button type="button" class="dialog-button dialog-button-secondary" data-delete-cancel>Hủy</button>
+                <button type="submit" class="dialog-button dialog-button-danger" data-delete-submit>Xóa</button>
+            </footer>
+        </form>
+    </dialog>
+
+    <button type="button" class="sidebar-backdrop" data-sidebar-backdrop aria-label="Đóng lịch sử chat"></button>
+</section>

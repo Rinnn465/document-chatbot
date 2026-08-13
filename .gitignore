@@ -1,7 +1,8 @@
 bin/
 obj/
 .vs/
-.vscode/
+.vscode/*
+!.vscode/settings.json
 .idea/
 
 *.user
@@ -11,14 +12,16 @@ obj/
 
 .env
 .env.*
-!.env.example
 appsettings.Local.json
 
 TestResults/
 coverage/
+tests/
+rag-service/tests/
 
 uploads/
 chroma_db/
+knowledge/
 rag-service/models/
 
 __pycache__/

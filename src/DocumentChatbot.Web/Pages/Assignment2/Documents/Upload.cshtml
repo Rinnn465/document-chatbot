@@ -1,0 +1,34 @@
+@page "/Assignment2/Documents/Upload"
+@model DocumentChatbot.Web.Pages.Assignment2.Documents.UploadModel
+@{
+    ViewData["Title"] = "Upload tài liệu";
+}
+
+<p><a asp-page="/Assignment2/Documents/Index">← Quay lại danh sách</a></p>
+<section class="page-heading compact">
+    <div>
+        <h1>Upload tài liệu</h1>
+        <p>PageModel nhận form, kiểm tra tệp và gọi cùng một DocumentService mà bản MVC sử dụng.</p>
+    </div>
+</section>
+
+<form method="post" enctype="multipart/form-data" class="form-panel">
+    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="field">
+        <label asp-for="Input.Title"></label>
+        <input asp-for="Input.Title" />
+        <span asp-validation-for="Input.Title"></span>
+    </div>
+    <div class="field">
+        <label asp-for="Input.Chapter"></label>
+        <input asp-for="Input.Chapter" />
+        <span asp-validation-for="Input.Chapter"></span>
+    </div>
+    <div class="field">
+        <label asp-for="Input.File"></label>
+        <input asp-for="Input.File" type="file" accept=".pdf,.docx,.pptx" />
+        <span asp-validation-for="Input.File"></span>
+    </div>
+    <p class="field-hint">Dung lượng tối đa 25 MB.</p>
+    <button class="btn" type="submit">Upload và lập chỉ mục</button>
+</form>

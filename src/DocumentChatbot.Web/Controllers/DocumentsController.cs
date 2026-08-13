@@ -1,14 +1,16 @@
-using DocumentChatbot.Core.Application.Abstractions;
-using DocumentChatbot.Core.Application.Exceptions;
-using DocumentChatbot.Core.Domain;
-using DocumentChatbot.Web.Models;
 using DocumentChatbot.Web.Services;
+using DocumentChatbot.Web.Exceptions;
+using DocumentChatbot.Web.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using DocumentChatbot.Web.Authorization;
 
 namespace DocumentChatbot.Web.Controllers;
 
+[Authorize(Policy = AppPolicies.SubjectLeaderOnly)]
 public sealed class DocumentsController(
     IDocumentService documentService,
+    ICourseService courseService,
     IUserContext userContext) : Controller
 {
     private static readonly Dictionary<string, DocumentType> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
@@ -20,11 +22,22 @@ public sealed class DocumentsController(
 
     private const long MaxFileSizeBytes = 25 * 1024 * 1024; // 25 MB
 
-    // GET: /Documents
-    public async Task<IActionResult> Index(CancellationToken cancellationToken)
+    // GET: /Documents?courseId=1
+    public async Task<IActionResult> Index(int courseId, CancellationToken cancellationToken)
     {
-        var documents = await documentService.GetAllAsync(cancellationToken);
-        return View(documents);
+        if (courseId <= 0)
+        {
+            return RedirectToAction("Index", "Courses");
+        }
+
+        var course = await GetManagedCourseAsync(courseId, cancellationToken);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        var documents = await documentService.GetAllAsync(courseId, cancellationToken);
+        return View(new CourseDocumentsViewModel(course, documents));
     }
 
     // GET: /Documents/Details/{id}
@@ -33,6 +46,13 @@ public sealed class DocumentsController(
         try
         {
             var document = await documentService.GetByIdAsync(id, cancellationToken);
+            var course = await GetManagedCourseAsync(document.CourseId, cancellationToken);
+            if (course is null)
+            {
+                return NotFound();
+            }
+
+            ViewData["Course"] = course;
             return View(document);
         }
         catch (DocumentNotFoundException)
@@ -42,24 +62,41 @@ public sealed class DocumentsController(
     }
 
     // GET: /Documents/Upload
-    public IActionResult Upload() => View(new DocumentUploadViewModel());
+    public async Task<IActionResult> Upload(int courseId, CancellationToken cancellationToken)
+    {
+        var course = await GetManagedCourseAsync(courseId, cancellationToken);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        ViewData["Course"] = course;
+        return View(new DocumentUploadViewModel { CourseId = courseId });
+    }
 
     // POST: /Documents/Upload
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Upload(DocumentUploadViewModel vm, CancellationToken cancellationToken)
     {
+        var course = await GetManagedCourseAsync(vm.CourseId, cancellationToken);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        ViewData["Course"] = course;
         if (!AllowedExtensions.TryGetValue(Path.GetExtension(vm.File?.FileName ?? string.Empty), out var fileType))
         {
-            ModelState.AddModelError(nameof(vm.File), "Only .pdf, .docx and .pptx files are allowed.");
+            ModelState.AddModelError(nameof(vm.File), "Chỉ chấp nhận tệp .pdf, .docx và .pptx.");
         }
         else if (vm.File!.Length == 0)
         {
-            ModelState.AddModelError(nameof(vm.File), "The selected file is empty.");
+            ModelState.AddModelError(nameof(vm.File), "Tệp được chọn không có nội dung.");
         }
         else if (vm.File.Length > MaxFileSizeBytes)
         {
-            ModelState.AddModelError(nameof(vm.File), "File exceeds the 25 MB size limit.");
+            ModelState.AddModelError(nameof(vm.File), "Tệp vượt quá giới hạn 25 MB.");
         }
 
         if (!ModelState.IsValid)
@@ -69,6 +106,7 @@ public sealed class DocumentsController(
 
         await using var stream = vm.File!.OpenReadStream();
         var document = await documentService.UploadAsync(
+            vm.CourseId,
             vm.Title,
             vm.Chapter,
             vm.File.FileName,
@@ -76,10 +114,17 @@ public sealed class DocumentsController(
             stream,
             vm.File.Length,
             userContext.UserId,
-            userContext.UserId,
+            userContext.DisplayName,
             cancellationToken);
 
-        TempData["Success"] = $"Document \"{document.Title}\" uploaded and indexed successfully.";
+        if (document.Status == DocumentStatus.Indexed)
+        {
+            TempData["Success"] = $"Đã upload và lập chỉ mục tài liệu \"{document.Title}\".";
+        }
+        else
+        {
+            TempData["Error"] = $"Đã nhận tài liệu nhưng lập chỉ mục thất bại: {document.ProcessingError}";
+        }
         return RedirectToAction(nameof(Details), new { id = document.Id });
     }
 
@@ -90,14 +135,25 @@ public sealed class DocumentsController(
     {
         try
         {
+            var document = await documentService.GetByIdAsync(id, cancellationToken);
+            var course = await GetManagedCourseAsync(document.CourseId, cancellationToken);
+            if (course is null)
+            {
+                return NotFound();
+            }
+
             await documentService.DeleteAsync(id, cancellationToken);
-            TempData["Success"] = "Document was deleted.";
+            TempData["Success"] = "Đã xóa tài liệu.";
+            return RedirectToAction(nameof(Index), new { courseId = document.CourseId });
         }
         catch (DocumentNotFoundException)
         {
             return NotFound();
         }
-
-        return RedirectToAction(nameof(Index));
     }
+
+    private Task<CourseSummary?> GetManagedCourseAsync(
+        int courseId,
+        CancellationToken cancellationToken) =>
+        courseService.GetManagedCourseAsync(userContext.UserId, courseId, cancellationToken);
 }

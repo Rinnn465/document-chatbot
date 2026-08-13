@@ -1,0 +1,66 @@
+@model IReadOnlyList<CourseSummary>
+@{
+    ViewData["Title"] = "Tài liệu môn học";
+}
+
+<section class="document-page course-selection-page">
+    <header class="document-header">
+        <div class="document-header-content">
+            <p class="eyebrow">Kho tri thức</p>
+            <h1>Tài liệu môn học</h1>
+            <p>Chọn môn học để quản lý tài liệu và trạng thái lập chỉ mục.</p>
+        </div>
+    </header>
+
+    <div class="document-card">
+        <header class="document-card-header">
+            <div>
+                <strong>Danh sách môn học</strong>
+                <span>@Model.Count môn</span>
+            </div>
+        </header>
+
+        @if (!Model.Any())
+        {
+            <div class="empty-state document-empty-state">
+                <span class="empty-state-icon" aria-hidden="true">SUB</span>
+                <h2>Chưa có môn học</h2>
+                <p>Tài khoản này chưa được phân công quản lý môn học nào.</p>
+            </div>
+        }
+        else
+        {
+            <div class="document-table-wrap">
+                <table class="document-table course-table">
+                    <thead>
+                        <tr>
+                            <th>Mã môn</th>
+                            <th>Tên môn học</th>
+                            <th>Tài liệu</th>
+                            <th>Trạng thái</th>
+                            <th><span class="sr-only">Thao tác</span></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @foreach (var course in Model)
+                    {
+                        <tr>
+                            <td><strong class="course-code">@course.Code</strong></td>
+                            <td>
+                                <strong class="course-name">@course.Name</strong>
+                                <span class="document-subtitle">Quản lý tài liệu theo chương và lập chỉ mục RAG</span>
+                            </td>
+                            <td class="numeric-cell">@course.DocumentCount</td>
+                            <td><span class="status-badge status-Indexed">Đang hoạt động</span></td>
+                            <td>
+                                <a asp-controller="Documents" asp-action="Index" asp-route-courseId="@course.CourseId"
+                                   class="btn btn-secondary btn-small">Quản lý tài liệu</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        }
+    </div>
+</section>

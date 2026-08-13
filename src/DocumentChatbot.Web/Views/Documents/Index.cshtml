@@ -1,256 +1,80 @@
-﻿@model List<Document>
-
+@model CourseDocumentsViewModel
 @{
-    ViewData["Title"] = "Documents";
-
-    var subjects = ViewBag.Subjects as List<Subject>
-                   ?? new List<Subject>();
-
-    int? selectedSubjectId = ViewBag.SelectedSubjectId;
+    ViewData["Title"] = "Tài liệu";
 }
 
-<div class="document-page">
-
-    <div class="document-header">
-
+<section class="document-page">
+    <header class="document-header">
         <div class="document-header-content">
-
-            <h1>Course Documents</h1>
-
-            <p>
-                Manage and access course learning materials.
-            </p>
-
+            <a asp-controller="Courses" asp-action="Index" class="back-link">← Danh sách môn học</a>
+            <p class="eyebrow">@Model.Course.Code · @Model.Course.Name</p>
+            <h1>Tài liệu môn học</h1>
+            <p>Quản lý tài liệu theo chương và theo dõi trạng thái lập chỉ mục.</p>
         </div>
-
-        @if (User.IsInRole("SubjectLeader"))
-        {
-            <a asp-action="Upload"
-               class="btn btn-primary px-4">
-                + Upload Document
-            </a>
-        }
-
-    </div>
-
-    @if (TempData["Success"] is string successMessage)
-    {
-        <div class="alert alert-success border-0 shadow-sm">
-            @successMessage
-        </div>
-    }
+        <a asp-action="Upload" asp-route-courseId="@Model.Course.CourseId" class="btn">+ Upload tài liệu</a>
+    </header>
 
     <div class="document-card">
-
-        <div class="document-card-header">
-
-            <div class="document-filter mb-0">
-
-                <span class="fw-semibold">
-                    Filter by subject
-                </span>
-
-                <form method="get">
-
-                    <select name="subjectId"
-                            class="form-select"
-                            onchange="this.form.submit()">
-
-                        <option value="">
-                            All subjects
-                        </option>
-
-                        @foreach (var s in subjects)
-                        {
-                            if (selectedSubjectId == s.Id)
-                            {
-                                <option value="@s.Id" selected>
-                                    @s.Code - @s.Name
-                                </option>
-                            }
-                            else
-                            {
-                                <option value="@s.Id">
-                                    @s.Code - @s.Name
-                                </option>
-                            }
-                        }
-
-                    </select>
-
-                </form>
-
+        <header class="document-card-header">
+            <div>
+                <strong>Danh sách tài liệu</strong>
+                <span>@Model.Documents.Count tài liệu</span>
             </div>
+        </header>
 
-        </div>
-
-        @if (!Model.Any())
+        @if (!Model.Documents.Any())
         {
-            <div class="empty-state">
-
-                <div class="empty-state-icon">
-                    📄
-                </div>
-
-                <h4>No documents found</h4>
-
-                <p>
-                    There are currently no course documents available.
-                </p>
-
-                @if (User.IsInRole("SubjectLeader"))
-                {
-                    <a asp-action="Upload"
-                       class="btn btn-primary mt-2">
-                        Upload your first document
-                    </a>
-                }
-
+            <div class="empty-state document-empty-state">
+                <span class="empty-state-icon" aria-hidden="true">DOC</span>
+                <h2>Chưa có tài liệu</h2>
+                <p>Upload tài liệu đầu tiên để hệ thống có dữ liệu phục vụ chức năng hỏi đáp.</p>
+                <a asp-action="Upload" asp-route-courseId="@Model.Course.CourseId" class="btn">Upload tài liệu đầu tiên</a>
             </div>
         }
         else
         {
-            <div class="table-responsive">
-
-                <table class="table document-table">
-
+            <div class="document-table-wrap">
+                <table class="document-table">
                     <thead>
                         <tr>
-                            <th>Document</th>
-                            <th>Subject</th>
-                            <th>Chapter</th>
-                            <th>Type</th>
-                            <th>Status</th>
+                            <th>Tài liệu</th>
+                            <th>Chương</th>
+                            <th>Loại</th>
+                            <th>Trạng thái</th>
                             <th>Chunks</th>
-                            <th>Uploaded by</th>
-                            <th>Uploaded</th>
-                            <th></th>
+                            <th>Người upload</th>
+                            <th>Ngày upload</th>
+                            <th><span class="sr-only">Thao tác</span></th>
                         </tr>
                     </thead>
-
                     <tbody>
-
-                        @foreach (var doc in Model)
-                        {
-                            <tr>
-
-                                <td>
-                                    <div class="document-title">
-                                        @doc.Title
-                                    </div>
-
-                                    <div class="document-subtitle">
-                                        @doc.OriginalFileName
-                                    </div>
-                                </td>
-
-                                <td>
-                                    <span class="fw-semibold">
-                                        @doc.Subject?.Code
-                                    </span>
-                                </td>
-
-                                <td>
-                                    @(doc.Chapter?.Name ?? "-")
-                                </td>
-
-                                <td>
-                                    @doc.FileType
-                                </td>
-
-                                <td>
-
-                                    @{
-                                        var statusClass = doc.Status switch
-                                        {
-                                            DocumentStatus.Indexed =>
-                                            "status-indexed",
-
-                                            DocumentStatus.Failed =>
-                                            "status-failed",
-
-                                            _ =>
-                                            "status-processing"
-                                        };
-                                    }
-
-                                    <span class="status-badge @statusClass">
-
-                                        @if (doc.Status == DocumentStatus.Indexed)
-                                        {
-                                            <span>●</span>
-                                        }
-                                        else if (doc.Status == DocumentStatus.Failed)
-                                        {
-                                            <span>●</span>
-                                        }
-                                        else
-                                        {
-                                            <span>●</span>
-                                        }
-
-                                        @doc.Status
-
-                                    </span>
-
-                                </td>
-
-                                <td>
-                                    <span class="fw-semibold">
-                                        @doc.ChunkCount
-                                    </span>
-                                </td>
-
-                                <td>
-                                    @doc.UploadedByName
-                                </td>
-
-                                <td>
-                                    <span class="text-muted">
-                                        @doc.UploadedAtUtc
-                                    </span>
-                                </td>
-
-                                <td>
-
-                                    <div class="d-flex gap-1">
-
-                                        <a asp-action="Details"
-                                           asp-route-id="@doc.Id"
-                                           class="btn btn-sm btn-outline-secondary">
-                                            View
-                                        </a>
-
-                                        @if (User.IsInRole("SubjectLeader"))
-                                        {
-                                            <form asp-action="Delete"
-                                                  asp-route-id="@doc.Id"
-                                                  method="post"
-                                                  class="d-inline"
-                                                  onsubmit="return confirm('Delete this document?');">
-
-                                                <button type="submit"
-                                                        class="btn btn-sm btn-outline-danger">
-                                                    Delete
-                                                </button>
-
-                                            </form>
-                                        }
-
-                                    </div>
-
-                                </td>
-
-                            </tr>
-                        }
-
+                    @foreach (var document in Model.Documents)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Details" asp-route-id="@document.Id" class="document-title">@document.Title</a>
+                                <span class="document-subtitle">@document.OriginalFileName</span>
+                            </td>
+                            <td>@(document.Chapter ?? "—")</td>
+                            <td><span class="file-type">@document.FileType</span></td>
+                            <td><span class="status-badge status-@document.Status">@document.Status</span></td>
+                            <td class="numeric-cell">@document.ChunkCount</td>
+                            <td>@document.UploadedByName</td>
+                            <td><time datetime="@document.UploadedAtUtc.ToString("O")">@document.UploadedAtUtc.ToLocalTime().ToString("g")</time></td>
+                            <td>
+                                <div class="document-actions">
+                                    <a asp-action="Details" asp-route-id="@document.Id" class="btn btn-secondary btn-small">Xem</a>
+                                    <form method="post" asp-action="Delete" asp-route-id="@document.Id"
+                                          onsubmit="return confirm('Xóa tài liệu này?');" class="inline-form">
+                                        <button type="submit" class="btn btn-danger btn-small">Xóa</button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
                     </tbody>
-
                 </table>
-
             </div>
         }
-
     </div>
-
-</div>
+</section>

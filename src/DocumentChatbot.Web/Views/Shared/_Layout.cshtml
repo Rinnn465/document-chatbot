@@ -1,17 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="vi">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - Document Chatbot</title>
     <link rel="stylesheet" href="~/site.css" />
 </head>
-<body>
+<body class="@ViewData["BodyClass"]">
     <header class="site-header">
-        <a class="brand" href="/Documents">Document Chatbot</a>
-        <nav>
-            <a href="/Documents">Documents</a>
-        </nav>
+        <a class="brand" asp-controller="Home" asp-action="Index">PRN222 Chatbot</a>
+        @if (User.Identity?.IsAuthenticated == true)
+        {
+            <nav class="assignment-nav" aria-label="Assignment 2 demo">
+                @if (User.IsInRole("SubjectLeader"))
+                {
+                    <a asp-page="/Assignment2/Documents/Index">Assignment 2 · Razor Pages</a>
+                }
+                else if (User.IsInRole("Student"))
+                {
+                    <a asp-page="/Assignment2/Chat/Index">Assignment 2 · Razor Pages</a>
+                }
+            </nav>
+        }
+        <div class="account-nav">
+            @if (User.Identity?.IsAuthenticated == true)
+            {
+                <span>@User.Identity.Name</span>
+                <form asp-controller="Account" asp-action="Logout" method="post">
+                    <button class="nav-button" type="submit">Đăng xuất</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login">Đăng nhập</a>
+            }
+        </div>
     </header>
 
     <main class="container">
@@ -19,7 +42,12 @@
         {
             <div class="alert alert-success">@success</div>
         }
+        @if (TempData["Error"] is string error)
+        {
+            <div class="alert alert-danger">@error</div>
+        }
         @RenderBody()
     </main>
+    @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

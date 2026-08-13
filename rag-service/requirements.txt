@@ -5,6 +5,7 @@ pydantic==2.10.1
 
 langchain-chroma==0.1.4
 chromadb==0.5.17
+posthog==5.4.0
 sentence-transformers>=5.0.0
 transformers>=4.51.0
 accelerate>=1.0.0

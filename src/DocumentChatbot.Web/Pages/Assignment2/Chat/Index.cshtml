@@ -1,0 +1,12 @@
+@page "/Assignment2/Chat"
+@model DocumentChatbot.Web.Pages.Assignment2.Chat.IndexModel
+@{
+    ViewData["Title"] = "Hỏi đáp tài liệu — Razor Pages";
+}
+
+<partial name="_ChatWorkspace" />
+
+@section Scripts {
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/chat.js" asp-append-version="true"></script>
+}

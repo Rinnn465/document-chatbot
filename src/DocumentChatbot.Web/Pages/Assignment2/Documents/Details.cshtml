@@ -1,0 +1,29 @@
+@page "/Assignment2/Documents/{id:guid}"
+@model DocumentChatbot.Web.Pages.Assignment2.Documents.DetailsModel
+@{
+    ViewData["Title"] = Model.Document.Title;
+}
+
+<p><a asp-page="/Assignment2/Documents/Index">← Quay lại danh sách</a></p>
+<h1>@Model.Document.Title</h1>
+<p><span class="status-badge status-@Model.Document.Status">@Model.Document.Status</span></p>
+
+@if (!string.IsNullOrWhiteSpace(Model.Document.ProcessingError))
+{
+    <div class="alert alert-danger">@Model.Document.ProcessingError</div>
+}
+
+<table>
+    <tbody>
+        <tr><th>Tệp</th><td>@Model.Document.OriginalFileName (@Model.Document.FileType)</td></tr>
+        <tr><th>Chương</th><td>@(Model.Document.Chapter ?? "-")</td></tr>
+        <tr><th>Dung lượng</th><td>@(Model.Document.FileSizeBytes / 1024) KB</td></tr>
+        <tr><th>Số chunk</th><td>@Model.Document.ChunkCount</td></tr>
+        <tr><th>Người upload</th><td>@Model.Document.UploadedByName</td></tr>
+        <tr><th>Thời gian</th><td>@Model.Document.UploadedAtUtc.ToLocalTime().ToString("g")</td></tr>
+    </tbody>
+</table>
+
+<form method="post" asp-page-handler="Delete" asp-route-id="@Model.Document.Id" onsubmit="return confirm('Xóa tài liệu này?');">
+    <button class="btn btn-danger" type="submit">Xóa tài liệu</button>
+</form>

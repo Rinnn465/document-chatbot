@@ -1,159 +1,73 @@
-﻿@model DocumentUploadViewModel
-
+@model DocumentUploadViewModel
 @{
-    ViewData["Title"] = "Upload Document";
+    ViewData["Title"] = "Upload tài liệu";
+    var course = (CourseSummary)ViewData["Course"]!;
 }
 
-<div class="document-page">
-
+<section class="document-page">
     <div class="upload-container">
+        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="back-link">← Quay lại danh sách tài liệu</a>
 
-        <div class="mb-4">
-            <a asp-action="Index"
-               class="text-decoration-none text-secondary">
-                ← Back to Documents
-            </a>
-        </div>
+        <header class="page-header">
+            <p class="eyebrow">Nguồn tri thức @course.Code</p>
+            <h1>Upload tài liệu</h1>
+            <p>Thêm PDF, DOCX hoặc PPTX để hệ thống trích xuất, chia đoạn và lập chỉ mục.</p>
+        </header>
 
-        <div class="page-header">
-            <h1>Upload Course Material</h1>
-            <p>
-                Add a document to the course knowledge base for indexing and retrieval.
-            </p>
-        </div>
+        <form asp-action="Upload" method="post" enctype="multipart/form-data">
+            <input asp-for="CourseId" type="hidden" />
+            <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
 
-        <div asp-validation-summary="ModelOnly"
-             class="alert alert-danger"
-             role="alert"></div>
-
-        <form asp-action="Upload"
-              method="post"
-              enctype="multipart/form-data">
-
-            <div class="upload-card">
-
-                <div class="upload-card-header">
-                    <h2>Document Information</h2>
-                    <p>
-                        Fill in the document details before uploading your file.
-                    </p>
-                </div>
+            <article class="upload-card">
+                <header class="upload-card-header">
+                    <div>
+                        <h2>Thông tin tài liệu</h2>
+                        <p>Nhập thông tin mô tả trước khi chọn tệp.</p>
+                    </div>
+                    <span class="step-label">01 / Upload</span>
+                </header>
 
                 <div class="upload-card-body">
-
-                    <div class="mb-4">
-                        <label asp-for="Title" class="form-label">
-                            Document Title
-                        </label>
-
-                        <input asp-for="Title"
-                               class="form-control"
-                               placeholder="e.g. Software Requirements Specification" />
-
-                        <span asp-validation-for="Title"
-                              class="text-danger small"></span>
+                    <div class="field">
+                        <label asp-for="Title"></label>
+                        <input asp-for="Title" type="text" placeholder="Ví dụ: Dependency Injection trong ASP.NET Core" />
+                        <span asp-validation-for="Title"></span>
                     </div>
 
-                    <div class="row">
-
-                        <div class="col-md-6 mb-4">
-                            <label asp-for="SubjectId" class="form-label">
-                                Subject
-                            </label>
-
-                            <select asp-for="SubjectId"
-                                    asp-items="Model.Subjects"
-                                    class="form-select">
-                                <option value="">-- Select subject --</option>
-                            </select>
-
-                            <span asp-validation-for="SubjectId"
-                                  class="text-danger small"></span>
-                        </div>
-
-                        <div class="col-md-6 mb-4">
-                            <label asp-for="ChapterId" class="form-label">
-                                Chapter
-                            </label>
-
-                            <select asp-for="ChapterId"
-                                    asp-items="Model.Chapters"
-                                    class="form-select">
-                                <option value="">-- None --</option>
-                            </select>
-
-                            <span asp-validation-for="ChapterId"
-                                  class="text-danger small"></span>
-                        </div>
-
+                    <div class="field">
+                        <label asp-for="Chapter"></label>
+                        <input asp-for="Chapter" type="text" placeholder="Ví dụ: Chapter 3" />
+                        <span asp-validation-for="Chapter"></span>
                     </div>
 
-                    <div class="mb-4">
-
-                        <label asp-for="File" class="form-label">
-                            Document File
-                        </label>
-
+                    <div class="field">
+                        <label asp-for="File"></label>
                         <div class="file-upload-box">
-
-                            <div class="file-upload-icon">
-                                📄
+                            <span class="file-upload-icon" aria-hidden="true">FILE</span>
+                            <div>
+                                <strong class="file-upload-title">Chọn tài liệu môn học</strong>
+                                <p class="file-upload-description">PDF, DOCX hoặc PPTX · Dung lượng tối đa 25 MB</p>
                             </div>
-
-                            <div class="file-upload-title mb-1">
-                                Choose your course material
-                            </div>
-
-                            <div class="file-upload-description mb-3">
-                                Supported formats: PDF, DOCX, PPTX · Maximum size: 25 MB
-                            </div>
-
-                            <input asp-for="File"
-                                   type="file"
-                                   class="form-control"
-                                   accept=".pdf,.docx,.pptx" />
-
-                            <span asp-validation-for="File"
-                                  class="text-danger small"></span>
-
+                            <input asp-for="File" type="file" accept=".pdf,.docx,.pptx" />
                         </div>
-
+                        <span asp-validation-for="File"></span>
                     </div>
 
-                    <div class="alert alert-light border mb-4">
-                        <strong>What happens after upload?</strong>
+                    <aside class="upload-process-note">
+                        <strong>Sau khi upload</strong>
+                        <ol>
+                            <li>C# trích xuất nội dung tệp.</li>
+                            <li>Python chia đoạn và tạo embedding.</li>
+                            <li>Chroma lưu chỉ mục để chatbot truy xuất.</li>
+                        </ol>
+                    </aside>
 
-                        <ul class="mb-0 mt-2">
-                            <li>The document is stored securely.</li>
-                            <li>The content is extracted and split into text chunks.</li>
-                            <li>The chunks are indexed for later retrieval.</li>
-                        </ul>
+                    <div class="form-actions">
+                        <a asp-action="Index" asp-route-courseId="@Model.CourseId" class="btn btn-secondary">Hủy</a>
+                        <button type="submit" class="btn">Upload</button>
                     </div>
-
-                    <div class="d-flex justify-content-end gap-2">
-
-                        <a asp-action="Index"
-                           class="btn btn-outline-secondary px-4">
-                            Cancel
-                        </a>
-
-                        <button type="submit"
-                                class="btn btn-primary px-4">
-                            Upload &amp; Index
-                        </button>
-
-                    </div>
-
                 </div>
-
-            </div>
-
+            </article>
         </form>
-
     </div>
-
-</div>
-
-@section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+</section>
