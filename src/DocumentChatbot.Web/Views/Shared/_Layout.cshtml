@@ -9,17 +9,10 @@
 <body class="@ViewData["BodyClass"]">
     <header class="site-header">
         <a class="brand" asp-controller="Home" asp-action="Index">PRN222 Chatbot</a>
-        @if (User.Identity?.IsAuthenticated == true)
+        @if (User.Identity?.IsAuthenticated == true && User.IsInRole("SubjectLeader"))
         {
             <nav class="assignment-nav" aria-label="Assignment 2 demo">
-                @if (User.IsInRole("SubjectLeader"))
-                {
-                    <a asp-page="/Assignment2/Documents/Index">Assignment 2 · Razor Pages</a>
-                }
-                else if (User.IsInRole("Student"))
-                {
-                    <a asp-page="/Assignment2/Chat/Index">Assignment 2 · Razor Pages</a>
-                }
+                <a asp-page="/Assignment2/Documents/Index">Assignment 2 · Razor Pages</a>
             </nav>
         }
         <div class="account-nav">
