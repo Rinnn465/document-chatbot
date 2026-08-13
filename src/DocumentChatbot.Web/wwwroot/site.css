@@ -1,101 +1,487 @@
-body {
-    font-family: -apple-system, Segoe UI, Roboto, sans-serif;
-    margin: 0;
-    background: #f7f7fb;
-    color: #1a1a2e;
+html {
+    font-size: 14px;
+    position: relative;
+    min-height: 100%;
 }
 
-.site-header {
+@media (min-width: 768px) {
+    html {
+        font-size: 16px;
+    }
+}
+
+body {
+    margin: 0;
+    margin-bottom: 60px;
+    background-color: #f5f7fb;
+    color: #1f2937;
+}
+
+/* =========================
+   GLOBAL
+   ========================= */
+
+.btn:focus,
+.btn:active:focus,
+.btn-link.nav-link:focus,
+.form-control:focus,
+.form-check-input:focus,
+.form-select:focus {
+    box-shadow: 0 0 0 0.15rem rgba(37, 140, 251, 0.2);
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+    .page-header h1 {
+        font-weight: 700;
+        color: #172033;
+        margin-bottom: 0.35rem;
+    }
+
+    .page-header p {
+        color: #6b7280;
+        margin-bottom: 0;
+    }
+
+/* =========================
+   NAVBAR
+   ========================= */
+
+.navbar {
+    background: #ffffff !important;
+    min-height: 68px;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: #1e3a8a !important;
+    letter-spacing: -0.3px;
+}
+
+.navbar .nav-link {
+    color: #4b5563 !important;
+    font-weight: 500;
+    padding-left: 0.9rem !important;
+    padding-right: 0.9rem !important;
+}
+
+    .navbar .nav-link:hover {
+        color: #2563eb !important;
+    }
+
+/* =========================
+   DOCUMENT PAGE
+   ========================= */
+
+.document-page {
+    padding-top: 1rem;
+    padding-bottom: 2rem;
+}
+
+.document-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.document-header-content h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.4rem;
+    color: #172033;
+}
+
+.document-header-content p {
+    color: #6b7280;
+    margin: 0;
+}
+
+/* =========================
+   CARDS
+   ========================= */
+
+.document-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+}
+
+.document-card-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+    font-weight: 600;
+}
+
+.document-card-body {
+    padding: 1.25rem;
+}
+
+/* =========================
+   FILTER
+   ========================= */
+
+.document-filter {
     display: flex;
     align-items: center;
-    gap: 1.5rem;
-    padding: 0.75rem 1.5rem;
-    background: #1a1a2e;
-    color: #fff;
-}
-
-.site-header .brand {
-    color: #fff;
-    font-weight: 600;
-    text-decoration: none;
-}
-
-.site-header nav a {
-    color: #cfd2ff;
-    text-decoration: none;
-}
-
-.container {
-    max-width: 960px;
-    margin: 2rem auto;
-    padding: 0 1rem;
-}
-
-.alert {
-    padding: 0.75rem 1rem;
-    border-radius: 6px;
+    gap: 0.75rem;
     margin-bottom: 1rem;
 }
 
-.alert-success {
-    background: #e3f7e8;
-    color: #1e6b34;
+    .document-filter .form-select {
+        max-width: 320px;
+    }
+
+/* =========================
+   DOCUMENT TABLE
+   ========================= */
+
+.document-table {
+    margin-bottom: 0;
 }
 
-.alert-danger {
-    background: #fbe4e4;
-    color: #a11414;
-}
+    .document-table thead th {
+        background: #f8fafc;
+        color: #64748b;
+        font-size: 0.78rem;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        font-weight: 600;
+        border-bottom: 1px solid #e5e7eb;
+        padding: 0.9rem 1rem;
+        white-space: nowrap;
+    }
 
-table {
-    width: 100%;
-    border-collapse: collapse;
-    background: #fff;
-}
+    .document-table tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        border-bottom: 1px solid #f1f5f9;
+    }
 
-th, td {
-    text-align: left;
-    padding: 0.6rem 0.8rem;
-    border-bottom: 1px solid #e5e5f0;
-}
+    .document-table tbody tr:hover {
+        background-color: #f8fafc;
+    }
 
-.btn {
-    display: inline-block;
-    padding: 0.5rem 1rem;
-    border-radius: 6px;
-    border: none;
-    background: #4b4bff;
-    color: #fff;
-    text-decoration: none;
-    cursor: pointer;
-}
-
-.btn-danger {
-    background: #d64545;
-}
-
-form .field {
-    margin-bottom: 1rem;
-}
-
-label {
-    display: block;
-    margin-bottom: 0.3rem;
+.document-title {
     font-weight: 600;
+    color: #1e293b;
 }
 
-input[type=text], input[type=file] {
-    width: 100%;
-    padding: 0.5rem;
-    box-sizing: border-box;
+.document-subtitle {
+    font-size: 0.82rem;
+    color: #94a3b8;
+    margin-top: 0.15rem;
 }
+
+/* =========================
+   STATUS
+   ========================= */
 
 .status-badge {
-    padding: 0.15rem 0.5rem;
-    border-radius: 10px;
-    font-size: 0.8rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.35rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
 }
 
-.status-Indexed { background: #e3f7e8; color: #1e6b34; }
-.status-Processing { background: #fff6da; color: #8a6d00; }
-.status-Failed { background: #fbe4e4; color: #a11414; }
+.status-indexed {
+    background-color: #dcfce7;
+    color: #166534;
+}
+
+.status-failed {
+    background-color: #fee2e2;
+    color: #991b1b;
+}
+
+.status-processing {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+/* =========================
+   EMPTY STATE
+   ========================= */
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 1rem;
+}
+
+.empty-state-icon {
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    background: #eff6ff;
+    color: #2563eb;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.6rem;
+}
+
+.empty-state h4 {
+    font-weight: 600;
+    color: #334155;
+}
+
+.empty-state p {
+    color: #94a3b8;
+}
+
+/* =========================
+   UPLOAD PAGE
+   ========================= */
+
+.upload-container {
+    max-width: 850px;
+    margin: 0 auto;
+}
+
+.upload-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 16px;
+    box-shadow: 0 4px 16px rgba(15, 23, 42, 0.05);
+    overflow: hidden;
+}
+
+.upload-card-header {
+    padding: 1.5rem;
+    background: #f8fafc;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+    .upload-card-header h2 {
+        margin: 0 0 0.35rem;
+        font-size: 1.25rem;
+        font-weight: 700;
+        color: #172033;
+    }
+
+    .upload-card-header p {
+        margin: 0;
+        color: #64748b;
+        font-size: 0.9rem;
+    }
+
+.upload-card-body {
+    padding: 1.5rem;
+}
+
+.form-label {
+    font-weight: 600;
+    color: #374151;
+}
+
+.form-control,
+.form-select {
+    border-color: #dbe1ea;
+    border-radius: 9px;
+    min-height: 44px;
+}
+
+    .form-control:focus,
+    .form-select:focus {
+        border-color: #60a5fa;
+    }
+
+.file-upload-box {
+    border: 2px dashed #cbd5e1;
+    border-radius: 12px;
+    padding: 1.5rem;
+    background: #f8fafc;
+    transition: all 0.2s ease;
+}
+
+    .file-upload-box:hover {
+        border-color: #60a5fa;
+        background: #eff6ff;
+    }
+
+.file-upload-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.file-upload-title {
+    font-weight: 600;
+    color: #334155;
+}
+
+.file-upload-description {
+    color: #64748b;
+    font-size: 0.85rem;
+}
+
+/* =========================
+   DETAILS PAGE
+   ========================= */
+
+.details-container {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+.details-title {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #172033;
+    margin-bottom: 0.35rem;
+}
+
+.details-subtitle {
+    color: #64748b;
+    margin-bottom: 1.5rem;
+}
+
+.details-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+}
+
+.stat-label {
+    color: #64748b;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 0.3rem;
+}
+
+.stat-value {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.details-list dt {
+    color: #64748b;
+    font-weight: 600;
+}
+
+.details-list dd {
+    color: #1f2937;
+}
+
+/* =========================
+   CHUNKS
+   ========================= */
+
+.chunks-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 14px;
+    overflow: hidden;
+}
+
+.chunks-header {
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+    .chunks-header h3 {
+        margin: 0;
+        font-size: 1.15rem;
+        font-weight: 700;
+    }
+
+    .chunks-header p {
+        margin: 0.25rem 0 0;
+        color: #94a3b8;
+        font-size: 0.85rem;
+    }
+
+.accordion-item {
+    border-left: 0;
+    border-right: 0;
+}
+
+.accordion-button {
+    font-weight: 600;
+    color: #334155;
+    background: #ffffff;
+}
+
+    .accordion-button:not(.collapsed) {
+        color: #1e3a8a;
+        background: #eff6ff;
+        box-shadow: none;
+    }
+
+.accordion-body {
+    color: #475569;
+    background: #fafafa;
+    line-height: 1.7;
+}
+
+/* =========================
+   BUTTONS
+   ========================= */
+
+.btn {
+    border-radius: 8px;
+    font-weight: 500;
+}
+
+.btn-primary {
+    background-color: #2563eb;
+    border-color: #2563eb;
+}
+
+    .btn-primary:hover {
+        background-color: #1d4ed8;
+        border-color: #1d4ed8;
+    }
+
+/* =========================
+   FOOTER
+   ========================= */
+
+.footer {
+    background: #ffffff;
+    padding: 1rem 0;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 768px) {
+    .document-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+
+        .document-header .btn {
+            width: 100%;
+        }
+
+    .details-stats {
+        grid-template-columns: 1fr;
+    }
+
+    .document-table {
+        min-width: 900px;
+    }
+
+    .document-card {
+        overflow-x: auto;
+    }
+}

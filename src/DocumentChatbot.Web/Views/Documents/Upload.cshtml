@@ -1,31 +1,159 @@
-@model DocumentUploadViewModel
+﻿@model DocumentUploadViewModel
+
 @{
-    ViewData["Title"] = "Upload document";
+    ViewData["Title"] = "Upload Document";
 }
 
-<h1>Upload document</h1>
+<div class="document-page">
 
-<form method="post" enctype="multipart/form-data" asp-action="Upload">
-    @Html.AntiForgeryToken()
-    <div asp-validation-summary="ModelOnly" class="alert alert-danger"></div>
+    <div class="upload-container">
 
-    <div class="field">
-        <label asp-for="Title"></label>
-        <input asp-for="Title" type="text" />
-        <span asp-validation-for="Title"></span>
+        <div class="mb-4">
+            <a asp-action="Index"
+               class="text-decoration-none text-secondary">
+                ← Back to Documents
+            </a>
+        </div>
+
+        <div class="page-header">
+            <h1>Upload Course Material</h1>
+            <p>
+                Add a document to the course knowledge base for indexing and retrieval.
+            </p>
+        </div>
+
+        <div asp-validation-summary="ModelOnly"
+             class="alert alert-danger"
+             role="alert"></div>
+
+        <form asp-action="Upload"
+              method="post"
+              enctype="multipart/form-data">
+
+            <div class="upload-card">
+
+                <div class="upload-card-header">
+                    <h2>Document Information</h2>
+                    <p>
+                        Fill in the document details before uploading your file.
+                    </p>
+                </div>
+
+                <div class="upload-card-body">
+
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label">
+                            Document Title
+                        </label>
+
+                        <input asp-for="Title"
+                               class="form-control"
+                               placeholder="e.g. Software Requirements Specification" />
+
+                        <span asp-validation-for="Title"
+                              class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="SubjectId" class="form-label">
+                                Subject
+                            </label>
+
+                            <select asp-for="SubjectId"
+                                    asp-items="Model.Subjects"
+                                    class="form-select">
+                                <option value="">-- Select subject --</option>
+                            </select>
+
+                            <span asp-validation-for="SubjectId"
+                                  class="text-danger small"></span>
+                        </div>
+
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="ChapterId" class="form-label">
+                                Chapter
+                            </label>
+
+                            <select asp-for="ChapterId"
+                                    asp-items="Model.Chapters"
+                                    class="form-select">
+                                <option value="">-- None --</option>
+                            </select>
+
+                            <span asp-validation-for="ChapterId"
+                                  class="text-danger small"></span>
+                        </div>
+
+                    </div>
+
+                    <div class="mb-4">
+
+                        <label asp-for="File" class="form-label">
+                            Document File
+                        </label>
+
+                        <div class="file-upload-box">
+
+                            <div class="file-upload-icon">
+                                📄
+                            </div>
+
+                            <div class="file-upload-title mb-1">
+                                Choose your course material
+                            </div>
+
+                            <div class="file-upload-description mb-3">
+                                Supported formats: PDF, DOCX, PPTX · Maximum size: 25 MB
+                            </div>
+
+                            <input asp-for="File"
+                                   type="file"
+                                   class="form-control"
+                                   accept=".pdf,.docx,.pptx" />
+
+                            <span asp-validation-for="File"
+                                  class="text-danger small"></span>
+
+                        </div>
+
+                    </div>
+
+                    <div class="alert alert-light border mb-4">
+                        <strong>What happens after upload?</strong>
+
+                        <ul class="mb-0 mt-2">
+                            <li>The document is stored securely.</li>
+                            <li>The content is extracted and split into text chunks.</li>
+                            <li>The chunks are indexed for later retrieval.</li>
+                        </ul>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2">
+
+                        <a asp-action="Index"
+                           class="btn btn-outline-secondary px-4">
+                            Cancel
+                        </a>
+
+                        <button type="submit"
+                                class="btn btn-primary px-4">
+                            Upload &amp; Index
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </form>
+
     </div>
 
-    <div class="field">
-        <label asp-for="Chapter"></label>
-        <input asp-for="Chapter" type="text" />
-        <span asp-validation-for="Chapter"></span>
-    </div>
+</div>
 
-    <div class="field">
-        <label asp-for="File"></label>
-        <input asp-for="File" type="file" accept=".pdf,.docx,.pptx" />
-        <span asp-validation-for="File"></span>
-    </div>
-
-    <button type="submit" class="btn">Upload &amp; index</button>
-</form>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
