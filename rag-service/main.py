@@ -1,7 +1,10 @@
 from functools import lru_cache
+import os
+import secrets
+from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from fastapi import FastAPI, HTTPException, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Response, status
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 if TYPE_CHECKING:
@@ -78,6 +81,34 @@ class IngestResponse(ApiModel):
 app = FastAPI(title="Document Chatbot RAG Service", version="1.0.0")
 
 
+def read_secret(name: str) -> str:
+    direct_value = os.getenv(name, "").strip()
+    if direct_value:
+        return direct_value
+
+    secret_path = os.getenv(f"{name}_FILE", "").strip()
+    if not secret_path:
+        return ""
+
+    try:
+        return Path(secret_path).read_text(encoding="utf-8").strip()
+    except OSError as exception:
+        raise RuntimeError(f"Cannot read {name} from its secret file.") from exception
+
+
+def require_service_token(
+    supplied_token: str | None = Header(default=None, alias="X-RAG-Service-Token"),
+) -> None:
+    expected_token = read_secret("RAG_SERVICE_TOKEN")
+    if not expected_token:
+        return
+    if not supplied_token or not secrets.compare_digest(supplied_token, expected_token):
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid RAG service token.",
+        )
+
+
 @lru_cache(maxsize=1)
 def get_rag() -> "RAGPipeline":
     from rag import RAGPipeline
@@ -90,7 +121,7 @@ def health() -> dict[str, str]:
     return {"status": "ok"}
 
 
-@app.post("/ask", response_model=AskResponse)
+@app.post("/ask", response_model=AskResponse, dependencies=[Depends(require_service_token)])
 def ask(request: AskRequest) -> AskResponse:
     try:
         result = get_rag().answer(
@@ -102,7 +133,7 @@ def ask(request: AskRequest) -> AskResponse:
         raise HTTPException(status_code=503, detail=str(exception)) from exception
 
 
-@app.post("/documents", response_model=IngestResponse)
+@app.post("/documents", response_model=IngestResponse, dependencies=[Depends(require_service_token)])
 def ingest_document(request: IngestRequest) -> IngestResponse:
     try:
         count = get_rag().ingest_document(
@@ -117,7 +148,11 @@ def ingest_document(request: IngestRequest) -> IngestResponse:
         raise HTTPException(status_code=503, detail=str(exception)) from exception
 
 
-@app.delete("/documents/{document_id}", status_code=204)
+@app.delete(
+    "/documents/{document_id}",
+    status_code=204,
+    dependencies=[Depends(require_service_token)],
+)
 def delete_document(document_id: str) -> Response:
     try:
         get_rag().delete_document(document_id)

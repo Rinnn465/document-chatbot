@@ -31,7 +31,7 @@ CHUNK_OVERLAP = 150
 
 class RAGPipeline:
     def __init__(self) -> None:
-        api_key = os.getenv("OPENAI_API_KEY")
+        api_key = _read_secret_env("OPENAI_API_KEY")
         if not api_key:
             raise ValueError("OPENAI_API_KEY is not configured for the RAG service.")
 
@@ -427,6 +427,20 @@ class RAGPipeline:
             "sources": [],
             "context_count": 0,
         }
+
+
+def _read_secret_env(name: str) -> str:
+    direct_value = os.getenv(name, "").strip()
+    if direct_value:
+        return direct_value
+
+    secret_path = os.getenv(f"{name}_FILE", "").strip()
+    if not secret_path:
+        return ""
+    try:
+        return Path(secret_path).read_text(encoding="utf-8").strip()
+    except OSError as exception:
+        raise ValueError(f"Cannot read {name} from its secret file.") from exception
 
 
 def _log(message: str) -> None:

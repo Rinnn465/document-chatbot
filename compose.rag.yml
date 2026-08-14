@@ -1,0 +1,51 @@
+name: prn222-rag
+
+services:
+  rag:
+    build:
+      context: ./rag-service
+      dockerfile: Dockerfile
+    image: prn222-rag:local
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      OPENAI_API_KEY_FILE: /run/secrets/openai_api_key
+      RAG_SERVICE_TOKEN_FILE: /run/secrets/rag_service_token
+      OPENAI_MODEL: gpt-5.4-mini
+      OPENAI_REASONING_EFFORT: low
+      CHROMA_DIR: /data/chroma
+      CHROMA_COLLECTION: course_documents
+      KNOWLEDGE_DIR: /data/knowledge
+      SENTENCE_TRANSFORMERS_HOME: /data/models
+      EMBEDDING_MODEL: intfloat/multilingual-e5-small
+      EMBEDDING_DEVICE: cpu
+      ANONYMIZED_TELEMETRY: "false"
+    volumes:
+      - rag_chroma:/data/chroma
+      - rag_knowledge:/data/knowledge
+      - rag_models:/data/models
+    secrets:
+      - openai_api_key
+      - rag_service_token
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"
+      interval: 15s
+      timeout: 6s
+      retries: 10
+      start_period: 20s
+
+secrets:
+  openai_api_key:
+    file: ./secrets/openai_api_key.txt
+  rag_service_token:
+    file: ./secrets/rag_service_token.txt
+
+volumes:
+  rag_chroma:
+  rag_knowledge:
+  rag_models:

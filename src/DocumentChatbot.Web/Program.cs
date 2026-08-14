@@ -41,6 +41,10 @@ builder.Services.AddHttpClient<IRagService, HttpRagService>((serviceProvider, cl
     var options = serviceProvider.GetRequiredService<IOptions<RagServiceOptions>>().Value;
     client.BaseAddress = new Uri(options.BaseUrl);
     client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+    if (!string.IsNullOrWhiteSpace(options.ServiceToken))
+    {
+        client.DefaultRequestHeaders.Add("X-RAG-Service-Token", options.ServiceToken);
+    }
 });
 builder.Services.AddHttpClient<IDocumentIngestionService, HttpDocumentIngestionService>(
     (serviceProvider, client) =>
@@ -48,6 +52,10 @@ builder.Services.AddHttpClient<IDocumentIngestionService, HttpDocumentIngestionS
         var options = serviceProvider.GetRequiredService<IOptions<RagServiceOptions>>().Value;
         client.BaseAddress = new Uri(options.BaseUrl);
         client.Timeout = TimeSpan.FromSeconds(options.TimeoutSeconds);
+        if (!string.IsNullOrWhiteSpace(options.ServiceToken))
+        {
+            client.DefaultRequestHeaders.Add("X-RAG-Service-Token", options.ServiceToken);
+        }
     });
 builder.Services
     .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)

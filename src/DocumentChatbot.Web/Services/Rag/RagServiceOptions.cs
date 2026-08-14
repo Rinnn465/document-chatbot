@@ -6,5 +6,6 @@ public sealed class RagServiceOptions
 
     public string BaseUrl { get; set; } = "http://localhost:8000";
     public string AskPath { get; set; } = "/ask";
+    public string ServiceToken { get; set; } = string.Empty;
     public int TimeoutSeconds { get; set; } = 60;
 }
