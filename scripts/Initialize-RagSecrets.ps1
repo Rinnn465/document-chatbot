@@ -16,7 +16,7 @@ if ($ImportExistingDotEnv)
     $dotEnvPath = Join-Path $repositoryRoot "rag-service\.env"
     if (-not (Test-Path -LiteralPath $dotEnvPath))
     {
-        throw "Không tìm thấy rag-service\.env để import."
+        throw "Cannot find rag-service\.env to import."
     }
 
     $keyLine = Get-Content -LiteralPath $dotEnvPath |
@@ -24,14 +24,14 @@ if ($ImportExistingDotEnv)
         Select-Object -First 1
     if (-not $keyLine)
     {
-        throw "Không tìm thấy OPENAI_API_KEY trong rag-service\.env."
+        throw "OPENAI_API_KEY was not found in rag-service\.env."
     }
 
     $openAiApiKey = ($keyLine -split '=', 2)[1].Trim().Trim('"').Trim("'")
 }
 else
 {
-    $secureKey = Read-Host "Nhập OpenAI API key (nội dung sẽ không hiển thị)" -AsSecureString
+    $secureKey = Read-Host "Enter OpenAI API key (input is hidden)" -AsSecureString
     $keyPointer = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secureKey)
     try
     {
@@ -45,7 +45,7 @@ else
 
 if ([string]::IsNullOrWhiteSpace($openAiApiKey))
 {
-    throw "OpenAI API key không được để trống."
+    throw "OpenAI API key cannot be empty."
 }
 
 $serviceTokenBytes = [byte[]]::new(32)
@@ -63,5 +63,5 @@ $utf8WithoutBom = [Text.UTF8Encoding]::new($false)
 [IO.File]::WriteAllText($openAiSecretPath, $openAiApiKey.Trim(), $utf8WithoutBom)
 [IO.File]::WriteAllText($serviceTokenPath, $serviceToken, $utf8WithoutBom)
 
-Write-Host "Đã tạo Docker secrets trong thư mục secrets/ (được Git ignore)."
-Write-Host "RAG service token nằm tại secrets\rag_service_token.txt."
+Write-Host "Docker secrets created in secrets/ (ignored by Git)."
+Write-Host "RAG service token: secrets\rag_service_token.txt"
