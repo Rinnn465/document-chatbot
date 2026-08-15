@@ -25,8 +25,8 @@ from prompt import (
 
 load_dotenv()
 
-CHUNK_SIZE = 2_500
-CHUNK_OVERLAP = 250
+CHUNK_SIZE = 2_000
+CHUNK_OVERLAP = 200
 
 
 class RAGPipeline:
