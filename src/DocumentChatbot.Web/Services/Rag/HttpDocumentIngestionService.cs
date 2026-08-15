@@ -30,6 +30,22 @@ public sealed class HttpDocumentIngestionService(HttpClient httpClient) : IDocum
         response.EnsureSuccessStatusCode();
     }
 
+    public async Task<DocumentChunkPage> GetChunksAsync(
+        string documentId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        using var response = await httpClient.GetAsync(
+            $"/documents/{Uri.EscapeDataString(documentId)}/chunks?page={page}&pageSize={pageSize}",
+            cancellationToken);
+        response.EnsureSuccessStatusCode();
+
+        return await response.Content.ReadFromJsonAsync<DocumentChunkPage>(
+                   cancellationToken: cancellationToken)
+               ?? throw new InvalidOperationException("RAG service returned an empty chunk response.");
+    }
+
     private sealed record IngestRequest(
         string DocumentId,
         string DocumentName,

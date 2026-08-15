@@ -70,6 +70,25 @@ public sealed class DocumentService(
         CancellationToken cancellationToken = default) =>
         documents.GetAllAsync(courseId, cancellationToken);
 
+    public async Task<DocumentChunkPage> GetChunksAsync(
+        Guid id,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default)
+    {
+        var document = await GetByIdAsync(id, cancellationToken);
+        if (document.Status != DocumentStatus.Indexed)
+        {
+            throw new InvalidOperationException("Only indexed documents have chunks to display.");
+        }
+
+        return await ingestionService.GetChunksAsync(
+            document.Id.ToString("N"),
+            page,
+            pageSize,
+            cancellationToken);
+    }
+
     public async Task DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
         var document = await GetByIdAsync(id, cancellationToken);

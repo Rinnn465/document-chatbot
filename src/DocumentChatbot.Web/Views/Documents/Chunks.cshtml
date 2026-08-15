@@ -1,0 +1,100 @@
+@model DocumentChunksViewModel
+@{
+    ViewData["Title"] = $"Chunks · {Model.Document.Title}";
+    var firstItem = Model.Chunks.TotalCount == 0
+        ? 0
+        : ((Model.Chunks.Page - 1) * Model.Chunks.PageSize) + 1;
+    var lastItem = Math.Min(Model.Chunks.Page * Model.Chunks.PageSize, Model.Chunks.TotalCount);
+}
+
+<section class="document-page chunk-page">
+    <a asp-action="Index" asp-route-courseId="@Model.Document.CourseId" class="back-link">← Quay lại tài liệu @Model.Course.Code</a>
+
+    <header class="chunk-page-header">
+        <div>
+            <p class="eyebrow">Kiểm tra dữ liệu đã index</p>
+            <h1>@Model.Document.Title</h1>
+            <p>@Model.Document.OriginalFileName · @(Model.Document.Chapter ?? "Chưa phân chương")</p>
+        </div>
+        <span class="status-badge status-Indexed">Indexed</span>
+    </header>
+
+    <div class="chunk-summary" aria-label="Tóm tắt chunking">
+        <div>
+            <span>Tổng số chunks</span>
+            <strong>@Model.Chunks.TotalCount</strong>
+        </div>
+        <div>
+            <span>Đang hiển thị</span>
+            <strong>@firstItem–@lastItem</strong>
+        </div>
+        <div>
+            <span>Trang</span>
+            <strong>@Model.Chunks.Page/@Model.Chunks.TotalPages</strong>
+        </div>
+    </div>
+
+    @if (!Model.Chunks.Items.Any())
+    {
+        <div class="document-card chunk-empty-state">
+            <h2>Không có chunk để hiển thị</h2>
+            <p>Snapshot của tài liệu này chưa chứa nội dung chunk.</p>
+        </div>
+    }
+    else
+    {
+        <ol class="chunk-list" start="@firstItem">
+            @foreach (var chunk in Model.Chunks.Items)
+            {
+                var location = chunk.SectionNumber is null
+                    ? chunk.SectionType
+                    : $"{(chunk.SectionType == "slide" ? "Slide" : chunk.SectionType == "page" ? "Trang" : "Phần")} {chunk.SectionNumber}";
+                <li class="chunk-card">
+                    <header class="chunk-card-header">
+                        <div>
+                            <span class="chunk-number">Chunk @chunk.ChunkIndex</span>
+                            <strong>@location</strong>
+                            @if (!string.IsNullOrWhiteSpace(chunk.SectionTitle))
+                            {
+                                <span class="chunk-section-title">@chunk.SectionTitle</span>
+                            }
+                        </div>
+                        <span class="chunk-part">Đoạn @chunk.SectionChunkIndex trong phần</span>
+                    </header>
+                    <div class="chunk-content">@chunk.Content</div>
+                    <footer class="chunk-metadata">
+                        <span>ID</span>
+                        <code>@chunk.ChunkId</code>
+                        <span>SHA-256</span>
+                        <code title="@chunk.ContentHash">@chunk.ContentHash[..Math.Min(12, chunk.ContentHash.Length)]…</code>
+                    </footer>
+                </li>
+            }
+        </ol>
+    }
+
+    @if (Model.Chunks.TotalPages > 1)
+    {
+        <nav class="chunk-pagination" aria-label="Phân trang danh sách chunks">
+            @if (Model.Chunks.Page > 1)
+            {
+                <a asp-action="Chunks" asp-route-id="@Model.Document.Id" asp-route-page="@(Model.Chunks.Page - 1)" class="btn btn-secondary">← Trang trước</a>
+            }
+            else
+            {
+                <span class="btn btn-secondary is-disabled" aria-disabled="true">← Trang trước</span>
+            }
+
+            <span>Trang @Model.Chunks.Page trên @Model.Chunks.TotalPages</span>
+
+            @if (Model.Chunks.Page < Model.Chunks.TotalPages)
+            {
+                <a asp-action="Chunks" asp-route-id="@Model.Document.Id" asp-route-page="@(Model.Chunks.Page + 1)" class="btn btn-secondary">Trang sau →</a>
+            }
+            else
+            {
+                <span class="btn btn-secondary is-disabled" aria-disabled="true">Trang sau →</span>
+            }
+        </nav>
+    }
+</section>

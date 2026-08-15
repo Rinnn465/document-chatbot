@@ -4,10 +4,11 @@ import secrets
 from pathlib import Path
 from typing import TYPE_CHECKING, Literal
 
-from fastapi import Depends, FastAPI, Header, HTTPException, Response, status
+from fastapi import Depends, FastAPI, Header, HTTPException, Query, Response, status
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 if TYPE_CHECKING:
+    from knowledge_store import KnowledgeSnapshotStore
     from rag import RAGPipeline
 
 
@@ -78,6 +79,28 @@ class IngestResponse(ApiModel):
     chunk_count: int
 
 
+class DocumentChunkResponse(ApiModel):
+    chunk_id: str
+    chunk_index: int
+    section_type: str
+    section_index: int
+    section_number: int | None = None
+    section_chunk_index: int
+    section_title: str | None = None
+    content_hash: str
+    content: str
+
+
+class DocumentChunksResponse(ApiModel):
+    document_id: str
+    document_name: str
+    chapter: str | None = None
+    total_count: int
+    page: int
+    page_size: int
+    items: list[DocumentChunkResponse]
+
+
 app = FastAPI(title="Document Chatbot RAG Service", version="1.0.0")
 
 
@@ -114,6 +137,13 @@ def get_rag() -> "RAGPipeline":
     from rag import RAGPipeline
 
     return RAGPipeline()
+
+
+@lru_cache(maxsize=1)
+def get_knowledge_store() -> "KnowledgeSnapshotStore":
+    from knowledge_store import KnowledgeSnapshotStore
+
+    return KnowledgeSnapshotStore(os.getenv("KNOWLEDGE_DIR", "knowledge"))
 
 
 @app.get("/health")
@@ -157,5 +187,26 @@ def delete_document(document_id: str) -> Response:
     try:
         get_rag().delete_document(document_id)
         return Response(status_code=204)
+    except ValueError as exception:
+        raise HTTPException(status_code=503, detail=str(exception)) from exception
+
+
+@app.get(
+    "/documents/{document_id}/chunks",
+    response_model=DocumentChunksResponse,
+    dependencies=[Depends(require_service_token)],
+)
+def get_document_chunks(
+    document_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=20, alias="pageSize", ge=1, le=100),
+) -> DocumentChunksResponse:
+    try:
+        result = get_knowledge_store().get_document_chunks(document_id, page, page_size)
+        if result is None:
+            raise HTTPException(status_code=404, detail="Indexed document snapshot was not found.")
+        return DocumentChunksResponse.model_validate(result)
+    except HTTPException:
+        raise
     except ValueError as exception:
         raise HTTPException(status_code=503, detail=str(exception)) from exception

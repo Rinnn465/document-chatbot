@@ -63,6 +63,10 @@
                             <td><time datetime="@document.UploadedAtUtc.ToString("O")">@document.UploadedAtUtc.ToLocalTime().ToString("g")</time></td>
                             <td>
                                 <div class="document-actions">
+                                    @if (document.Status == DocumentStatus.Indexed)
+                                    {
+                                        <a asp-action="Chunks" asp-route-id="@document.Id" class="btn btn-secondary btn-small">Xem chunks</a>
+                                    }
                                     <a asp-action="Details" asp-route-id="@document.Id" class="btn btn-secondary btn-small">Xem</a>
                                     <form method="post" asp-action="Delete" asp-route-id="@document.Id"
                                           onsubmit="return confirm('Xóa tài liệu này?');" class="inline-form">

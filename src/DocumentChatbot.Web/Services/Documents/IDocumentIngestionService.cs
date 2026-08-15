@@ -15,5 +15,11 @@ public interface IDocumentIngestionService
         IReadOnlyList<ExtractedDocumentSection> sections,
         CancellationToken cancellationToken = default);
 
+    Task<DocumentChunkPage> GetChunksAsync(
+        string documentId,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task DeleteAsync(string documentId, CancellationToken cancellationToken = default);
 }

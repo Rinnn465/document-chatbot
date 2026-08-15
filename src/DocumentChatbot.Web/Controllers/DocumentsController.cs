@@ -152,6 +152,55 @@ public sealed class DocumentsController(
         }
     }
 
+    // GET: /Documents/Chunks/{id}?page=1
+    public async Task<IActionResult> Chunks(
+        Guid id,
+        int page = 1,
+        CancellationToken cancellationToken = default)
+    {
+        const int pageSize = 10;
+        if (page < 1)
+        {
+            return BadRequest();
+        }
+
+        try
+        {
+            var document = await documentService.GetByIdAsync(id, cancellationToken);
+            var course = await GetManagedCourseAsync(document.CourseId, cancellationToken);
+            if (course is null)
+            {
+                return NotFound();
+            }
+
+            var chunks = await documentService.GetChunksAsync(
+                id,
+                page,
+                pageSize,
+                cancellationToken);
+            if (page > chunks.TotalPages)
+            {
+                return RedirectToAction(nameof(Chunks), new { id, page = chunks.TotalPages });
+            }
+
+            return View(new DocumentChunksViewModel(course, document, chunks));
+        }
+        catch (DocumentNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException exception)
+        {
+            TempData["Error"] = exception.Message;
+            return RedirectToAction(nameof(Details), new { id });
+        }
+        catch (HttpRequestException)
+        {
+            TempData["Error"] = "Không thể tải danh sách chunks từ RAG service. Hãy kiểm tra kết nối và thử lại.";
+            return RedirectToAction(nameof(Details), new { id });
+        }
+    }
+
     private Task<CourseSummary?> GetManagedCourseAsync(
         int courseId,
         CancellationToken cancellationToken) =>

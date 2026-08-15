@@ -4,6 +4,8 @@ using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Presentation;
 using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
+using iText.Kernel.Pdf.Canvas.Parser.ClipperLib;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
 using A = DocumentFormat.OpenXml.Drawing;
 using P = DocumentFormat.OpenXml.Presentation;
 using W = DocumentFormat.OpenXml.Wordprocessing;
@@ -39,7 +41,7 @@ public sealed class TextExtractor : ITextExtractor
 
         for (var pageNumber = 1; pageNumber <= pdfDocument.GetNumberOfPages(); pageNumber++)
         {
-            var content = NormalizeLines(PdfTextExtractor.GetTextFromPage(pdfDocument.GetPage(pageNumber)));
+            var content = NormalizeLines(ExtractPdfPageText(pdfDocument.GetPage(pageNumber)));
             if (!string.IsNullOrWhiteSpace(content))
             {
                 sections.Add(new ExtractedDocumentSection("page", pageNumber, null, content));
@@ -47,6 +49,30 @@ public sealed class TextExtractor : ITextExtractor
         }
 
         return new ExtractedDocument(sections);
+    }
+
+    private static string ExtractPdfPageText(PdfPage page)
+    {
+        try
+        {
+            return PdfTextExtractor.GetTextFromPage(page);
+        }
+        catch (ClipperException)
+        {
+            // Some otherwise valid PDFs contain clipping paths with coordinates
+            // outside iText's Clipper range. Clipping does not affect the text
+            // needed by RAG, so retry while ignoring only the W/W* operators.
+            var ignoredClippingOperators = new Dictionary<string, IContentOperator>
+            {
+                ["W"] = NoOpContentOperator.Instance,
+                ["W*"] = NoOpContentOperator.Instance
+            };
+
+            return PdfTextExtractor.GetTextFromPage(
+                page,
+                new LocationTextExtractionStrategy(),
+                ignoredClippingOperators);
+        }
     }
 
     private static ExtractedDocument ExtractDocx(Stream fileStream)
@@ -230,4 +256,16 @@ public sealed class TextExtractor : ITextExtractor
 
     private static string? NullIfWhiteSpace(string? value) =>
         string.IsNullOrWhiteSpace(value) ? null : value.Trim();
+
+    private sealed class NoOpContentOperator : IContentOperator
+    {
+        public static readonly NoOpContentOperator Instance = new();
+
+        public void Invoke(
+            PdfCanvasProcessor processor,
+            PdfLiteral oper,
+            IList<PdfObject> operands)
+        {
+        }
+    }
 }

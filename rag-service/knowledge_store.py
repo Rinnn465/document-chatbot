@@ -110,6 +110,42 @@ class KnowledgeSnapshotStore:
                 with path.open("r", encoding="utf-8") as stream:
                     yield json.load(stream)
 
+    def get_document(self, document_id: str) -> dict[str, Any] | None:
+        """Returns the rebuildable snapshot for one indexed document."""
+        snapshot_path = self.documents_directory / self._snapshot_file_name(document_id)
+        with self._lock:
+            if not snapshot_path.is_file():
+                return None
+            with snapshot_path.open("r", encoding="utf-8") as stream:
+                snapshot = json.load(stream)
+
+        if not isinstance(snapshot, dict) or not isinstance(snapshot.get("chunks"), list):
+            raise ValueError(f"Invalid knowledge snapshot: {snapshot_path}")
+        return snapshot
+
+    def get_document_chunks(
+        self,
+        document_id: str,
+        page: int,
+        page_size: int,
+    ) -> dict[str, Any] | None:
+        snapshot = self.get_document(document_id)
+        if snapshot is None:
+            return None
+
+        document = snapshot.get("document") or {}
+        chunks = snapshot.get("chunks") or []
+        start = (page - 1) * page_size
+        return {
+            "documentId": str(document.get("documentId") or document_id),
+            "documentName": str(document.get("documentName") or ""),
+            "chapter": document.get("chapter"),
+            "totalCount": len(chunks),
+            "page": page,
+            "pageSize": page_size,
+            "items": chunks[start : start + page_size],
+        }
+
     def _read_manifest(self) -> dict[str, Any]:
         if not self.manifest_path.is_file():
             return {

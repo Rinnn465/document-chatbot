@@ -22,5 +22,11 @@ public interface IDocumentService
         int courseId,
         CancellationToken cancellationToken = default);
 
+    Task<DocumentChunkPage> GetChunksAsync(
+        Guid id,
+        int page,
+        int pageSize,
+        CancellationToken cancellationToken = default);
+
     Task DeleteAsync(Guid id, CancellationToken cancellationToken = default);
 }
