@@ -1287,7 +1287,7 @@ body.auth-page {
 }
 .chunk-list {
     display: grid;
-    gap: .8rem;
+    gap: 1.15rem;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -1327,10 +1327,10 @@ body.auth-page {
     white-space: nowrap;
 }
 .chunk-content {
-    padding: 1.15rem;
+    padding: 1.35rem 1.4rem;
     color: var(--text);
     font-size: .9rem;
-    line-height: 1.72;
+    line-height: 1.8;
     overflow-wrap: anywhere;
     white-space: pre-wrap;
 }
