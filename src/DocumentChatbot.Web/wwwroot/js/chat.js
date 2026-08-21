@@ -5,18 +5,22 @@
     if (!workspace || typeof signalR === "undefined") return;
 
     const feed = workspace.querySelector("[data-chat-feed]");
-    const welcomeTemplate = workspace.querySelector("[data-chat-empty]").cloneNode(true);
+    const emptySection = workspace.querySelector("[data-chat-empty]");
+    const welcomeTemplate = emptySection ? emptySection.cloneNode(true) : null;
     const form = workspace.querySelector("[data-chat-form]");
     const question = form.querySelector("textarea");
     const sendButton = form.querySelector("button[type='submit']");
     const count = form.querySelector("[data-character-count]");
     const sessionTitle = workspace.querySelector("[data-session-title]");
     const sessionList = workspace.querySelector("[data-session-list]");
+    const sessionCountBadge = workspace.querySelector("[data-session-count]");
+    const sessionSearch = workspace.querySelector("[data-session-search]");
     const newChatButton = workspace.querySelector("[data-new-chat]");
     const connectionState = workspace.querySelector("[data-connection-state]");
     const connectionLabel = workspace.querySelector("[data-connection-label]");
     const liveStatus = workspace.querySelector("[data-live-status]");
     const liveStatusText = workspace.querySelector("[data-live-status-text]");
+    const scrollBottomBtn = workspace.querySelector("[data-scroll-bottom]");
     const renameDialog = workspace.querySelector("[data-rename-dialog]");
     const renameForm = workspace.querySelector("[data-rename-form]");
     const renameInput = workspace.querySelector("[data-rename-input]");
@@ -34,6 +38,7 @@
     let deleteSessionId = null;
     let waitingForAnswer = false;
     let reconnectTimer = null;
+    let searchQuery = "";
 
     const connection = new signalR.HubConnectionBuilder()
         .withUrl("/hubs/chat")
@@ -68,12 +73,27 @@
     }
 
     function showWelcome() {
-        feed.replaceChildren(welcomeTemplate.cloneNode(true));
+        if (welcomeTemplate) {
+            feed.replaceChildren(welcomeTemplate.cloneNode(true));
+        } else {
+            feed.replaceChildren();
+        }
         feed.scrollTop = 0;
     }
 
     function scrollToLatest(behavior = "smooth") {
         feed.scrollTo({ top: feed.scrollHeight, behavior });
+    }
+
+    function checkScrollPosition() {
+        if (!scrollBottomBtn) return;
+        const distFromBottom = feed.scrollHeight - feed.scrollTop - feed.clientHeight;
+        scrollBottomBtn.hidden = distFromBottom <= 140;
+    }
+
+    feed.addEventListener("scroll", checkScrollPosition, { passive: true });
+    if (scrollBottomBtn) {
+        scrollBottomBtn.addEventListener("click", () => scrollToLatest("smooth"));
     }
 
     function removeDocumentPreface(value) {
@@ -83,7 +103,8 @@
     }
 
     function appendInlineMarkdown(parent, value) {
-        const tokenPattern = /(\*\*[^*\n]+\*\*|`[^`\n]+`)/g;
+        // Match bold **...**, code `...`, and citations like [Slide X], [Page X], [S1], [Chương X], [DOC ...]
+        const tokenPattern = /(\*\*[^*\n]+\*\*|`[^`\n]+`|\[(?:Slide|Page|Trang|Chương|Doc|Document|S|Nguồn)[^\]\n]*\])/gi;
         let position = 0;
         for (const match of value.matchAll(tokenPattern)) {
             if (match.index > position) {
@@ -91,13 +112,31 @@
             }
 
             const token = match[0];
-            const element = token.startsWith("**")
-                ? document.createElement("strong")
-                : document.createElement("code");
-            element.textContent = token.startsWith("**")
-                ? token.slice(2, -2)
-                : token.slice(1, -1);
-            parent.append(element);
+            if (token.startsWith("**") && token.endsWith("**")) {
+                const bold = document.createElement("strong");
+                bold.textContent = token.slice(2, -2);
+                parent.append(bold);
+            } else if (token.startsWith("`") && token.endsWith("`")) {
+                const code = document.createElement("code");
+                code.className = "inline-code";
+                code.textContent = token.slice(1, -1);
+                parent.append(code);
+            } else if (token.startsWith("[") && token.endsWith("]")) {
+                const citation = document.createElement("span");
+                citation.className = "citation-tag";
+                citation.setAttribute("title", `Nguồn trích dẫn: ${token.slice(1, -1)}`);
+                
+                const icon = document.createElement("span");
+                icon.className = "citation-icon";
+                icon.textContent = "📄";
+                
+                const text = document.createElement("span");
+                text.textContent = token.slice(1, -1);
+                
+                citation.append(icon, text);
+                parent.append(citation);
+            }
+
             position = match.index + token.length;
         }
 
@@ -107,12 +146,15 @@
     }
 
     function renderAssistantMarkdown(container, content) {
-        const lines = removeDocumentPreface(content)
-            .replace(/\r\n?/g, "\n")
-            .split("\n");
+        const raw = removeDocumentPreface(content).replace(/\r\n?/g, "\n");
+        const lines = raw.split("\n");
+        
         let paragraphLines = [];
         let list = null;
         let listType = null;
+        let inCodeBlock = false;
+        let codeBlockLang = "";
+        let codeBlockLines = [];
 
         const flushParagraph = () => {
             if (paragraphLines.length === 0) return;
@@ -121,6 +163,7 @@
             container.append(paragraph);
             paragraphLines = [];
         };
+
         const flushList = () => {
             if (!list) return;
             container.append(list);
@@ -128,9 +171,81 @@
             listType = null;
         };
 
-        lines.forEach(line => {
+        const flushCodeBlock = () => {
+            if (!inCodeBlock) return;
+            const wrapper = document.createElement("div");
+            wrapper.className = "code-block-wrapper";
+
+            const header = document.createElement("div");
+            header.className = "code-block-header";
+
+            const langLabel = document.createElement("span");
+            langLabel.className = "code-block-lang";
+            langLabel.textContent = codeBlockLang || "code";
+
+            const copyBtn = document.createElement("button");
+            copyBtn.type = "button";
+            copyBtn.className = "code-copy-btn";
+            copyBtn.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>Sao chép mã</span>`;
+
+            const codeText = codeBlockLines.join("\n");
+            copyBtn.addEventListener("click", async () => {
+                try {
+                    await navigator.clipboard.writeText(codeText);
+                    copyBtn.classList.add("copied");
+                    copyBtn.querySelector("span").textContent = "Đã chép!";
+                    setTimeout(() => {
+                        copyBtn.classList.remove("copied");
+                        copyBtn.querySelector("span").textContent = "Sao chép mã";
+                    }, 2000);
+                } catch (e) {
+                    console.error("Clipboard copy failed", e);
+                }
+            });
+
+            header.append(langLabel, copyBtn);
+
+            const pre = document.createElement("pre");
+            pre.className = "code-block-pre";
+            const code = document.createElement("code");
+            code.textContent = codeText;
+            pre.append(code);
+
+            wrapper.append(header, pre);
+            container.append(wrapper);
+
+            inCodeBlock = false;
+            codeBlockLang = "";
+            codeBlockLines = [];
+        };
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const trimmed = line.trim();
+
+            // Code block start / end
+            if (trimmed.startsWith("```")) {
+                if (inCodeBlock) {
+                    flushCodeBlock();
+                } else {
+                    flushParagraph();
+                    flushList();
+                    inCodeBlock = true;
+                    codeBlockLang = trimmed.slice(3).trim();
+                    codeBlockLines = [];
+                }
+                continue;
+            }
+
+            if (inCodeBlock) {
+                codeBlockLines.push(line);
+                continue;
+            }
+
+            // Unordered list item
             const unordered = line.match(/^\s*[-*]\s+(.+)$/);
-            const ordered = line.match(/^\s*\d+[.)]\s+(.+)$/);
+            // Ordered list item
+            const ordered = line.match(/^\s*(\d+)[.)]\s+(.+)$/);
             const nextListType = unordered ? "ul" : ordered ? "ol" : null;
 
             if (nextListType) {
@@ -141,23 +256,76 @@
                     listType = nextListType;
                 }
                 const item = document.createElement("li");
-                appendInlineMarkdown(item, (unordered?.[1] ?? ordered[1]).trim());
+                appendInlineMarkdown(item, (unordered ? unordered[1] : ordered[2]).trim());
                 list.append(item);
-                return;
+                continue;
             }
 
-            if (line.trim().length === 0) {
+            if (trimmed.length === 0) {
                 flushParagraph();
                 flushList();
-                return;
+                continue;
             }
 
             flushList();
-            paragraphLines.push(line.trim());
-        });
+            paragraphLines.push(trimmed);
+        }
 
+        if (inCodeBlock) flushCodeBlock();
         flushParagraph();
         flushList();
+    }
+
+    function createAssistantActions(rawContent) {
+        const bar = document.createElement("div");
+        bar.className = "message-action-bar";
+
+        // Copy button
+        const copyBtn = document.createElement("button");
+        copyBtn.type = "button";
+        copyBtn.className = "msg-action-btn";
+        copyBtn.title = "Sao chép câu trả lời";
+        copyBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><span>Sao chép</span>`;
+        copyBtn.addEventListener("click", async () => {
+            try {
+                await navigator.clipboard.writeText(rawContent);
+                copyBtn.classList.add("is-active");
+                copyBtn.querySelector("span").textContent = "Đã sao chép";
+                setTimeout(() => {
+                    copyBtn.classList.remove("is-active");
+                    copyBtn.querySelector("span").textContent = "Sao chép";
+                }, 2000);
+            } catch (err) {
+                console.error("Copy error", err);
+            }
+        });
+
+        // Like button
+        const likeBtn = document.createElement("button");
+        likeBtn.type = "button";
+        likeBtn.className = "msg-action-btn msg-reaction-btn";
+        likeBtn.title = "Câu trả lời hữu ích";
+        likeBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`;
+
+        // Dislike button
+        const dislikeBtn = document.createElement("button");
+        dislikeBtn.type = "button";
+        dislikeBtn.className = "msg-action-btn msg-reaction-btn";
+        dislikeBtn.title = "Câu trả lời chưa rõ";
+        dislikeBtn.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h3a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2h-3"></path></svg>`;
+
+        likeBtn.addEventListener("click", () => {
+            likeBtn.classList.toggle("is-active");
+            dislikeBtn.classList.remove("is-active");
+        });
+
+        dislikeBtn.addEventListener("click", () => {
+            dislikeBtn.classList.toggle("is-active");
+            likeBtn.classList.remove("is-active");
+        });
+
+        bar.append(copyBtn, likeBtn, dislikeBtn);
+        return bar;
     }
 
     function appendMessage(role, content, options = {}) {
@@ -167,10 +335,14 @@
         row.className = `message-row message-row-${role}`;
         if (options.error) row.classList.add("message-row-error");
 
-        const avatar = document.createElement("span");
+        const avatar = document.createElement("div");
         avatar.className = "message-avatar";
         avatar.setAttribute("aria-hidden", "true");
-        avatar.textContent = role === "user" ? "B" : "PRN";
+        if (role === "user") {
+            avatar.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>`;
+        } else {
+            avatar.innerHTML = `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 2 7 12 12 22 7 12 2"></polygon><polyline points="2 17 12 22 22 17"></polyline><polyline points="2 12 12 17 22 12"></polyline></svg>`;
+        }
 
         const contentWrap = document.createElement("div");
         contentWrap.className = "message-content";
@@ -180,7 +352,7 @@
         const author = document.createElement("strong");
         author.textContent = options.error
             ? "Không thể trả lời"
-            : role === "user" ? "Bạn" : "Trợ lý PRN222";
+            : role === "user" ? "Bạn" : "PRN222 Assistant";
         const time = document.createElement("time");
         time.textContent = formatTime(options.sentAtUtc);
         meta.append(author, time);
@@ -194,9 +366,14 @@
         }
         contentWrap.append(meta, body);
 
+        if (role === "assistant" && !options.error) {
+            contentWrap.append(createAssistantActions(content));
+        }
+
         row.append(avatar, contentWrap);
         feed.appendChild(row);
         if (options.scroll !== false) scrollToLatest();
+        checkScrollPosition();
     }
 
     function formatTime(value) {
@@ -215,13 +392,24 @@
     }
 
     function renderSessionList() {
-        const ordered = [...sessions.values()]
+        let ordered = [...sessions.values()]
             .sort((left, right) => new Date(right.updatedAtUtc) - new Date(left.updatedAtUtc));
 
+        if (sessionCountBadge) {
+            sessionCountBadge.textContent = ordered.length.toString();
+        }
+
+        if (searchQuery.trim().length > 0) {
+            const query = searchQuery.trim().toLowerCase();
+            ordered = ordered.filter(s => s.title.toLowerCase().includes(query));
+        }
+
         if (ordered.length === 0) {
-            const empty = document.createElement("p");
+            const empty = document.createElement("div");
             empty.className = "session-list-empty";
-            empty.textContent = "Chưa có cuộc trò chuyện";
+            empty.innerHTML = searchQuery.trim().length > 0
+                ? `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg><p>Không tìm thấy kết quả</p>`
+                : `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg><p>Chưa có cuộc trò chuyện</p>`;
             sessionList.replaceChildren(empty);
             return;
         }
@@ -242,12 +430,15 @@
             const icon = document.createElement("span");
             icon.className = "session-item-icon";
             icon.setAttribute("aria-hidden", "true");
-            icon.textContent = "◇";
+            icon.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>`;
+
             const text = document.createElement("span");
             text.className = "session-item-title";
             text.textContent = session.title;
+
             const time = document.createElement("time");
             time.textContent = formatSessionTime(session.updatedAtUtc);
+
             button.append(icon, text, time);
 
             const menuToggle = document.createElement("button");
@@ -256,7 +447,7 @@
             menuToggle.dataset.sessionMenu = session.id;
             menuToggle.setAttribute("aria-label", `Thao tác với ${session.title}`);
             menuToggle.setAttribute("aria-expanded", "false");
-            menuToggle.textContent = "•••";
+            menuToggle.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="1"></circle><circle cx="19" cy="12" r="1"></circle><circle cx="5" cy="12" r="1"></circle></svg>`;
 
             const menu = document.createElement("div");
             menu.className = "session-actions-menu";
@@ -267,20 +458,27 @@
             renameButton.type = "button";
             renameButton.dataset.sessionAction = "rename";
             renameButton.dataset.sessionId = session.id;
-            renameButton.textContent = "Đổi tên";
+            renameButton.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg><span>Đổi tên</span>`;
 
             const deleteButton = document.createElement("button");
             deleteButton.type = "button";
             deleteButton.className = "session-delete-action";
             deleteButton.dataset.sessionAction = "delete";
             deleteButton.dataset.sessionId = session.id;
-            deleteButton.textContent = "Xóa";
+            deleteButton.innerHTML = `<svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg><span>Xóa</span>`;
 
             menu.append(renameButton, deleteButton);
             row.append(button, menuToggle, menu);
             fragment.appendChild(row);
         });
         sessionList.replaceChildren(fragment);
+    }
+
+    if (sessionSearch) {
+        sessionSearch.addEventListener("input", (e) => {
+            searchQuery = e.target.value;
+            renderSessionList();
+        });
     }
 
     function closeSessionMenus(exceptPanel = null) {
@@ -340,7 +538,7 @@
 
     async function openSession(id) {
         if (waitingForAnswer || id === activeSessionId) return;
-        setWaiting(true, "Đang mở cuộc trò chuyện...");
+        setWaiting(true, "Đang tải cuộc trò chuyện...");
         try {
             const session = await connection.invoke("GetSession", id);
             sessions.set(session.id, session);
@@ -437,7 +635,7 @@
 
     function resizeComposer() {
         question.style.height = "auto";
-        question.style.height = `${Math.min(question.scrollHeight, 144)}px`;
+        question.style.height = `${Math.min(question.scrollHeight, 160)}px`;
         count.textContent = question.value.length.toString();
         updateControls();
     }
@@ -561,7 +759,7 @@
         appendMessage("user", value);
         question.value = "";
         resizeComposer();
-        setWaiting(true, "Đang tìm trong tài liệu...");
+        setWaiting(true, "Đang tìm trong tài liệu PRN222...");
 
         try {
             await connection.invoke("Ask", requestedSessionId, value);
@@ -602,6 +800,7 @@
         const button = event.target.closest("[data-session-id]");
         if (button) openSession(button.dataset.sessionId);
     });
+
     renameForm.addEventListener("submit", renameSession);
     deleteForm.addEventListener("submit", deleteSession);
     workspace.querySelector("[data-rename-cancel]").addEventListener("click", () => renameDialog.close());

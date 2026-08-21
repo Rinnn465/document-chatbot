@@ -7,23 +7,41 @@
 
 <section class="chat-workspace" data-chat-workspace aria-label="Trợ lý học tập PRN222">
     <aside class="chat-sidebar" aria-label="Lịch sử hội thoại">
-        <div class="chat-sidebar-brand">
-            <span class="chat-brand-mark" aria-hidden="true">P2</span>
-            <span>
-                <strong>PRN222 Assistant</strong>
-                <small>Hỏi đáp theo tài liệu</small>
-            </span>
+        <div class="chat-sidebar-header">
+            <div class="chat-sidebar-brand">
+                <span class="chat-brand-mark" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+                        <polyline points="2 17 12 22 22 17"></polyline>
+                        <polyline points="2 12 12 17 22 12"></polyline>
+                    </svg>
+                </span>
+                <div class="brand-title-wrap">
+                    <strong>PRN222 Assistant</strong>
+                    <small>RAG Document AI</small>
+                </div>
+            </div>
+
+            <button type="button" class="new-chat-button" data-new-chat disabled>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                <span>Cuộc trò chuyện mới</span>
+            </button>
+
+            <div class="session-search-wrap">
+                <svg class="search-icon" viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+                <input type="text" class="session-search-input" data-session-search placeholder="Tìm đoạn chat..." aria-label="Tìm kiếm đoạn chat" />
+            </div>
         </div>
 
-        <button type="button" class="new-chat-button" data-new-chat disabled>
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path d="M12 5v14M5 12h14" />
-            </svg>
-            <span>Đoạn Chat Mới</span>
-        </button>
-
         <div class="session-heading">
-            <span>Đoạn chat gần đây</span>
+            <span>Lịch sử gần đây</span>
+            <span class="session-count-badge" data-session-count>0</span>
         </div>
 
         <nav class="session-list" data-session-list aria-label="Các phiên chat">
@@ -34,76 +52,148 @@
 
         <div class="chat-sidebar-account">
             <span class="student-avatar" aria-hidden="true">@initial</span>
-            <span>
+            <div class="account-info">
                 <strong>@displayName</strong>
-                <small>Student · PRN222</small>
-            </span>
+                <span class="account-badge">Sinh viên · PRN222</span>
+            </div>
         </div>
     </aside>
 
     <main class="chat-panel">
         <header class="chat-panel-header">
-            <button type="button" class="mobile-sidebar-toggle" data-sidebar-toggle aria-label="Mở lịch sử chat">
-                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14" /></svg>
-            </button>
-            <div class="chat-current-title">
-                <h1 data-session-title>Cuộc trò chuyện mới</h1>
-                <span>PRN222 · Câu trả lời có trích dẫn</span>
+            <div class="header-left">
+                <button type="button" class="mobile-sidebar-toggle" data-sidebar-toggle aria-label="Mở lịch sử chat">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="12" x2="21" y2="12"></line>
+                        <line x1="3" y1="6" x2="21" y2="6"></line>
+                        <line x1="3" y1="18" x2="21" y2="18"></line>
+                    </svg>
+                </button>
+                <div class="chat-current-title">
+                    <h1 data-session-title>Cuộc trò chuyện mới</h1>
+                    <div class="session-meta-pill">
+                        <span class="course-pill">PRN222</span>
+                        <span class="meta-dot"></span>
+                        <span class="citation-hint">Câu trả lời có trích dẫn nguồn</span>
+                    </div>
+                </div>
             </div>
-            <div class="connection-state" data-connection-state data-state="connecting" role="status">
-                <span class="connection-dot" aria-hidden="true"></span>
-                <span data-connection-label>Đang kết nối</span>
+
+            <div class="header-right">
+                <div class="connection-state" data-connection-state data-state="connecting" role="status">
+                    <span class="connection-dot-ring">
+                        <span class="connection-dot" aria-hidden="true"></span>
+                    </span>
+                    <span data-connection-label class="connection-label">Đang kết nối</span>
+                </div>
             </div>
         </header>
 
-        <div class="chat-feed" data-chat-feed aria-live="polite" aria-busy="true">
-            <section class="chat-welcome" data-chat-empty>
-                <span class="assistant-glyph" aria-hidden="true">PRN</span>
-                <h2>Hôm nay bạn muốn hỏi gì?</h2>
-                <p>Trợ lý chỉ trả lời dựa trên tài liệu PRN222 đã được Subject Leader lập chỉ mục.</p>
+        <div class="chat-feed-wrapper">
+            <div class="chat-feed" data-chat-feed aria-live="polite" aria-busy="true">
+                <section class="chat-welcome" data-chat-empty>
+                    <div class="welcome-orb" aria-hidden="true">
+                        <div class="orb-core">
+                            <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"></path>
+                            </svg>
+                        </div>
+                    </div>
+                    <h2>Xin chào! Bạn muốn học gì hôm nay?</h2>
+                    <p class="welcome-desc">Trợ lý AI trả lời dựa trên slide bài giảng, giáo trình và tài liệu chính thức của môn PRN222.</p>
 
-                <div class="prompt-list" aria-label="Câu hỏi gợi ý">
-                    <button type="button" data-suggestion="Dependency Injection trong ASP.NET Core hoạt động như thế nào?">
-                        Dependency Injection hoạt động như thế nào?
-                    </button>
-                    <button type="button" data-suggestion="Middleware được thực thi theo thứ tự nào trong ASP.NET Core?">
-                        Giải thích thứ tự của Middleware pipeline
-                    </button>
-                </div>
-            </section>
+                    <div class="prompt-grid" aria-label="Câu hỏi gợi ý theo chuyên đề">
+                        <button type="button" class="prompt-card" data-suggestion="Dependency Injection trong ASP.NET Core có những lifetime nào và hoạt động ra sao?">
+                            <div class="prompt-card-icon">⚡</div>
+                            <div class="prompt-card-content">
+                                <strong>Dependency Injection</strong>
+                                <small>Các Service Lifetime: Transient, Scoped, Singleton</small>
+                            </div>
+                        </button>
+                        <button type="button" class="prompt-card" data-suggestion="Giải thích thứ tự thực thi của Middleware pipeline trong ASP.NET Core?">
+                            <div class="prompt-card-icon">🔄</div>
+                            <div class="prompt-card-content">
+                                <strong>Middleware Pipeline</strong>
+                                <small>Thứ tự luồng Request/Response và Use/Run</small>
+                            </div>
+                        </button>
+                        <button type="button" class="prompt-card" data-suggestion="SignalR Hub hoạt động như thế nào để gửi tin nhắn thời gian thực?">
+                            <div class="prompt-card-icon">📡</div>
+                            <div class="prompt-card-content">
+                                <strong>Realtime SignalR Hub</strong>
+                                <small>Cơ chế kết nối, Groups và Clients Caller</small>
+                            </div>
+                        </button>
+                        <button type="button" class="prompt-card" data-suggestion="So sánh Entity Framework Core DbContext và Repository Pattern trong PRN222?">
+                            <div class="prompt-card-icon">🗄️</div>
+                            <div class="prompt-card-content">
+                                <strong>EF Core & DbContext</strong>
+                                <small>Cách quản lý kết nối và Unit of Work</small>
+                            </div>
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <button type="button" class="scroll-bottom-btn" data-scroll-bottom aria-label="Cuộn xuống tin nhắn mới nhất" hidden>
+                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <polyline points="19 12 12 19 5 12"></polyline>
+                </svg>
+            </button>
         </div>
 
         <div class="chat-live-status" data-live-status hidden>
-            <span class="typing-dots" aria-hidden="true"><i></i><i></i><i></i></span>
-            <span data-live-status-text></span>
+            <div class="live-status-pill">
+                <span class="typing-wave" aria-hidden="true">
+                    <span></span><span></span><span></span>
+                </span>
+                <span data-live-status-text class="live-status-text"></span>
+            </div>
         </div>
 
-        <form class="chat-input" data-chat-form>
-            <label class="sr-only" for="chat-question">Câu hỏi</label>
-            <textarea id="chat-question" name="question" rows="1" maxlength="2000"
-                      placeholder="Nhập câu hỏi về tài liệu PRN222..." disabled></textarea>
-            <div class="chat-input-footer">
-                <span><kbd>Enter</kbd> gửi · <kbd>Shift</kbd> + <kbd>Enter</kbd> xuống dòng</span>
-                <span class="character-count"><span data-character-count>0</span>/2000</span>
-                <button type="submit" class="send-message" disabled aria-label="Gửi câu hỏi">
-                    <svg viewBox="0 0 24 24" aria-hidden="true">
-                        <path d="M5 12h13M13 6l6 6-6 6" />
-                    </svg>
-                </button>
-            </div>
-        </form>
-        <p class="chat-disclaimer">AI có thể trả lời chưa chính xác. Hãy kiểm tra lại nguồn được trích dẫn.</p>
+        <div class="chat-input-wrapper">
+            <form class="chat-input" data-chat-form>
+                <label class="sr-only" for="chat-question">Câu hỏi</label>
+                <textarea id="chat-question" name="question" rows="1" maxlength="2000"
+                          placeholder="Hỏi bất kỳ điều gì về tài liệu môn học PRN222..." disabled></textarea>
+                <div class="chat-input-footer">
+                    <div class="input-shortcuts">
+                        <span><kbd>Enter</kbd> gửi</span>
+                        <span><kbd>Shift</kbd> + <kbd>Enter</kbd> xuống dòng</span>
+                    </div>
+                    <div class="input-actions-right">
+                        <span class="character-count"><span data-character-count>0</span>/2000</span>
+                        <button type="submit" class="send-message" disabled aria-label="Gửi câu hỏi">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <line x1="22" y1="2" x2="11" y2="13"></line>
+                                <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <p class="chat-disclaimer">
+                <svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+                Câu trả lời được tổng hợp tự động từ bài giảng môn học PRN222. Vui lòng kiểm tra lại slide và tài liệu gốc.
+            </p>
+        </div>
     </main>
 
     <dialog class="session-dialog" data-rename-dialog aria-labelledby="rename-session-title">
         <form class="session-dialog-form" data-rename-form>
             <header>
+                <div class="dialog-icon-wrap" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                </div>
                 <h2 id="rename-session-title">Đổi tên đoạn chat</h2>
-                <p>Đặt một tên ngắn để dễ tìm lại cuộc trò chuyện.</p>
+                <p>Đặt tên gợi nhớ để dễ tìm lại kiến thức khi ôn tập.</p>
             </header>
-            <label for="rename-session-input">Tên đoạn chat</label>
-            <input id="rename-session-input" type="text" maxlength="100" autocomplete="off"
-                   data-rename-input required />
+            <div class="dialog-field">
+                <label for="rename-session-input">Tên cuộc trò chuyện</label>
+                <input id="rename-session-input" type="text" maxlength="100" autocomplete="off"
+                       data-rename-input required />
+            </div>
             <p class="session-dialog-error" data-rename-error hidden></p>
             <footer>
                 <button type="button" class="dialog-button dialog-button-secondary" data-rename-cancel>Hủy</button>
@@ -115,16 +205,20 @@
     <dialog class="session-dialog" data-delete-dialog aria-labelledby="delete-session-title">
         <form class="session-dialog-form" data-delete-form>
             <header>
-                <h2 id="delete-session-title">Xóa đoạn chat?</h2>
-                <p>Đoạn chat <strong data-delete-session-name></strong> cùng toàn bộ tin nhắn sẽ bị xóa.</p>
+                <div class="dialog-icon-wrap danger" aria-hidden="true">
+                    <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                </div>
+                <h2 id="delete-session-title">Xóa đoạn chat này?</h2>
+                <p>Đoạn chat <strong data-delete-session-name></strong> cùng toàn bộ lịch sử tin nhắn sẽ bị xóa vĩnh viễn.</p>
             </header>
             <p class="session-dialog-error" data-delete-error hidden></p>
             <footer>
                 <button type="button" class="dialog-button dialog-button-secondary" data-delete-cancel>Hủy</button>
-                <button type="submit" class="dialog-button dialog-button-danger" data-delete-submit>Xóa</button>
+                <button type="submit" class="dialog-button dialog-button-danger" data-delete-submit>Xóa vĩnh viễn</button>
             </footer>
         </form>
     </dialog>
 
     <button type="button" class="sidebar-backdrop" data-sidebar-backdrop aria-label="Đóng lịch sử chat"></button>
 </section>
+
