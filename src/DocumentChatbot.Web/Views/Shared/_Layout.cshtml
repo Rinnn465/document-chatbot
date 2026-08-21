@@ -4,16 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>@ViewData["Title"] - PRN222 Assistant</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Plus+Jakarta+Sans:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="~/site.css" asp-append-version="true" />
-    <script>
-        (function() {
-            var theme = localStorage.getItem('prn222_theme') || 'dark';
-            document.documentElement.setAttribute('data-theme', theme);
-        })();
-    </script>
 </head>
 <body class="@ViewData["BodyClass"]">
     <header class="site-header">
@@ -41,22 +32,6 @@
                 </nav>
             }
             <div class="account-nav">
-                <button type="button" class="theme-toggle-btn" data-theme-toggle aria-label="Chuyển đổi giao diện Sáng / Tối" title="Đổi chế độ Sáng / Tối">
-                    <svg class="sun-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <circle cx="12" cy="12" r="5"></circle>
-                        <line x1="12" y1="1" x2="12" y2="3"></line>
-                        <line x1="12" y1="21" x2="12" y2="23"></line>
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
-                        <line x1="1" y1="12" x2="3" y2="12"></line>
-                        <line x1="21" y1="12" x2="23" y2="12"></line>
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
-                    </svg>
-                    <svg class="moon-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
-                    </svg>
-                </button>
                 @if (User.Identity?.IsAuthenticated == true)
                 {
                     <div class="user-chip">
@@ -100,18 +75,5 @@
         @RenderBody()
     </main>
     @await RenderSectionAsync("Scripts", required: false)
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var toggleBtn = document.querySelector("[data-theme-toggle]");
-            if (toggleBtn) {
-                toggleBtn.addEventListener("click", function() {
-                    var current = document.documentElement.getAttribute("data-theme") || "dark";
-                    var next = current === "dark" ? "light" : "dark";
-                    document.documentElement.setAttribute("data-theme", next);
-                    localStorage.setItem("prn222_theme", next);
-                });
-            }
-        });
-    </script>
 </body>
 </html>

@@ -126,14 +126,10 @@
                 citation.className = "citation-tag";
                 citation.setAttribute("title", `Nguồn trích dẫn: ${token.slice(1, -1)}`);
                 
-                const icon = document.createElement("span");
-                icon.className = "citation-icon";
-                icon.textContent = "📄";
-                
                 const text = document.createElement("span");
                 text.textContent = token.slice(1, -1);
-                
-                citation.append(icon, text);
+
+                citation.append(text);
                 parent.append(citation);
             }
 
