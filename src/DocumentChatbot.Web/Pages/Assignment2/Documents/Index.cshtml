@@ -25,9 +25,25 @@
             Đang kết nối
         </span>
     </header>
-    <ol class="realtime-events" data-document-events aria-live="polite">
-        <li>Đang chờ sự kiện xử lý tài liệu...</li>
-    </ol>
+    <div class="realtime-progress" data-document-progress data-state="idle" aria-live="polite">
+        <div class="realtime-progress-meta">
+            <div>
+                <strong data-document-stage>Sẵn sàng</strong>
+                <span data-document-title>Chưa có tài liệu đang xử lý</span>
+            </div>
+            <output data-document-percent>0%</output>
+        </div>
+        <div class="realtime-progress-track"
+             data-document-progressbar
+             role="progressbar"
+             aria-label="Tiến độ xử lý tài liệu"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuenow="0">
+            <span data-document-progress-fill></span>
+        </div>
+        <p data-document-message>Upload tài liệu để theo dõi tiến trình trích xuất, chunking và indexing.</p>
+    </div>
 </section>
 
 <div data-document-content>

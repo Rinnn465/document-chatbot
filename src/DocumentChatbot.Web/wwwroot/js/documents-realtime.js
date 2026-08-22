@@ -7,16 +7,22 @@
     const courseId = Number(monitor.dataset.courseId);
     const documentId = monitor.dataset.documentId?.toLowerCase() ?? null;
     const connectionState = monitor.querySelector("[data-document-connection]");
-    const eventList = monitor.querySelector("[data-document-events]");
+    const progress = monitor.querySelector("[data-document-progress]");
+    const progressBar = monitor.querySelector("[data-document-progressbar]");
+    const progressFill = monitor.querySelector("[data-document-progress-fill]");
+    const progressStage = monitor.querySelector("[data-document-stage]");
+    const progressTitle = monitor.querySelector("[data-document-title]");
+    const progressPercent = monitor.querySelector("[data-document-percent]");
+    const progressMessage = monitor.querySelector("[data-document-message]");
     let refreshTimer = null;
 
     const stageNames = {
-        queued: "Queued",
-        uploaded: "Uploaded",
-        extracting: "Extracting",
-        indexing: "Chunking · Embedding · Indexing",
-        indexed: "Indexed",
-        failed: "Failed"
+        queued: "Đang chờ xử lý",
+        uploaded: "Đã tải lên",
+        extracting: "Đang trích xuất nội dung",
+        indexing: "Đang chunking và indexing",
+        indexed: "Hoàn tất",
+        failed: "Thất bại"
     };
 
     function setConnection(state, label) {
@@ -24,36 +30,15 @@
         connectionState.lastChild.textContent = ` ${label}`;
     }
 
-    function appendEvent(payload) {
-        if (eventList.children.length === 1 &&
-            eventList.firstElementChild?.textContent.includes("Đang chờ")) {
-            eventList.replaceChildren();
-        }
-
-        const item = document.createElement("li");
-        item.className = `realtime-event realtime-event-${payload.stage}`;
-
-        const time = new Intl.DateTimeFormat("vi-VN", {
-            hour: "2-digit",
-            minute: "2-digit",
-            second: "2-digit"
-        }).format(new Date(payload.occurredAtUtc));
-
-        const heading = document.createElement("div");
-        const stage = document.createElement("strong");
-        stage.textContent = `${stageNames[payload.stage] ?? payload.stage} · ${payload.progress}%`;
-        const timestamp = document.createElement("time");
-        timestamp.textContent = time;
-        heading.append(stage, timestamp);
-
-        const title = document.createElement("span");
-        title.textContent = payload.title;
-        const message = document.createElement("p");
-        message.textContent = payload.message;
-
-        item.append(heading, title, message);
-        eventList.prepend(item);
-        while (eventList.children.length > 6) eventList.lastElementChild?.remove();
+    function updateProgress(payload) {
+        const value = Math.max(0, Math.min(100, Number(payload.progress) || 0));
+        progress.dataset.state = payload.stage;
+        progressStage.textContent = stageNames[payload.stage] ?? payload.stage;
+        progressTitle.textContent = payload.title;
+        progressPercent.textContent = `${value}%`;
+        progressMessage.textContent = payload.message;
+        progressBar.setAttribute("aria-valuenow", value.toString());
+        progressFill.style.transform = `scaleX(${value / 100})`;
     }
 
     function scheduleContentRefresh(payload) {
@@ -88,7 +73,7 @@
 
     connection.on("DocumentProcessingChanged", payload => {
         if (payload.courseId !== courseId) return;
-        appendEvent(payload);
+        updateProgress(payload);
         scheduleContentRefresh(payload);
     });
 

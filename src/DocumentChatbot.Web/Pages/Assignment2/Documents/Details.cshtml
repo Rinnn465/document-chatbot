@@ -2,6 +2,25 @@
 @model DocumentChatbot.Web.Pages.Assignment2.Documents.DetailsModel
 @{
     ViewData["Title"] = Model.Document.Title;
+    var initialProgress = Model.Document.Status == DocumentStatus.Processing ? 10 : 100;
+    var initialState = Model.Document.Status switch
+    {
+        DocumentStatus.Indexed => "indexed",
+        DocumentStatus.Failed => "failed",
+        _ => "processing"
+    };
+    var initialStage = Model.Document.Status switch
+    {
+        DocumentStatus.Indexed => "Hoàn tất",
+        DocumentStatus.Failed => "Thất bại",
+        _ => "Đang xử lý"
+    };
+    var initialMessage = Model.Document.Status switch
+    {
+        DocumentStatus.Indexed => $"{Model.Document.ChunkCount} chunks đã sẵn sàng để truy xuất.",
+        DocumentStatus.Failed => Model.Document.ProcessingError ?? "Không thể lập chỉ mục tài liệu.",
+        _ => "Tài liệu đang chờ tiến trình xử lý tiếp theo."
+    };
 }
 
 <p><a asp-page="/Assignment2/Documents/Index">← Quay lại danh sách</a></p>
@@ -20,9 +39,25 @@
             Đang kết nối
         </span>
     </header>
-    <ol class="realtime-events" data-document-events aria-live="polite">
-        <li>Đang chờ sự kiện xử lý tài liệu...</li>
-    </ol>
+    <div class="realtime-progress" data-document-progress data-state="@initialState" aria-live="polite">
+        <div class="realtime-progress-meta">
+            <div>
+                <strong data-document-stage>@initialStage</strong>
+                <span data-document-title>@Model.Document.Title</span>
+            </div>
+            <output data-document-percent>@initialProgress%</output>
+        </div>
+        <div class="realtime-progress-track"
+             data-document-progressbar
+             role="progressbar"
+             aria-label="Tiến độ xử lý tài liệu"
+             aria-valuemin="0"
+             aria-valuemax="100"
+             aria-valuenow="@initialProgress">
+            <span data-document-progress-fill style="transform: scaleX(@(initialProgress / 100d));"></span>
+        </div>
+        <p data-document-message>@initialMessage</p>
+    </div>
 </section>
 
 <div data-document-content>
