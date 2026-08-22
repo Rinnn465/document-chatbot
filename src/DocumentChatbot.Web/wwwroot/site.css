@@ -1229,6 +1229,17 @@ a:hover { color: var(--accent-hover); }
     font-size: .66rem;
 }
 
+.citation-empty-notice {
+    margin: 0;
+    padding: .7rem .85rem;
+    border: 1px solid #353535;
+    border-radius: var(--radius-md);
+    background: #1b1b1b;
+    color: #a3a3a3;
+    font-size: .78rem;
+    line-height: 1.55;
+}
+
 .citation-source-list {
     margin: 0;
     padding: 0;

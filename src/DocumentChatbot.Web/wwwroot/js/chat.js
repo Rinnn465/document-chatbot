@@ -346,7 +346,6 @@
     function createCitationSection(citations) {
         const validCitations = (citations ?? [])
             .filter(citation => citation?.documentName?.trim());
-        if (validCitations.length === 0) return null;
 
         const section = document.createElement("section");
         section.className = "message-citations";
@@ -362,6 +361,17 @@
         count.setAttribute("aria-label", `${validCitations.length} nguồn`);
         heading.append(title, count);
 
+        section.append(heading);
+
+        if (validCitations.length === 0) {
+            section.classList.add("message-citations-empty");
+            const notice = document.createElement("p");
+            notice.className = "citation-empty-notice";
+            notice.textContent = "Phản hồi này chưa có nguồn kiểm chứng từ tài liệu môn học.";
+            section.append(notice);
+            return section;
+        }
+
         const list = document.createElement("ol");
         list.className = "citation-source-list";
 
@@ -372,6 +382,7 @@
             const details = document.createElement("details");
             details.className = "citation-source";
             details.dataset.citationLabel = label;
+            details.open = true;
 
             const summary = document.createElement("summary");
             const marker = document.createElement("span");
@@ -406,7 +417,7 @@
             list.append(item);
         });
 
-        section.append(heading, list);
+        section.append(list);
         return section;
     }
 
@@ -450,20 +461,18 @@
 
         if (role === "assistant" && !options.error) {
             const citationSection = createCitationSection(options.citations);
-            if (citationSection) {
-                contentWrap.append(citationSection);
-                body.querySelectorAll("[data-citation-label]").forEach(marker => {
-                    marker.addEventListener("click", () => {
-                        const source = [...citationSection.querySelectorAll("[data-citation-label]")]
-                            .find(item => item.dataset.citationLabel === marker.dataset.citationLabel);
-                        if (!source) return;
-                        source.open = true;
-                        source.scrollIntoView({ behavior: "smooth", block: "nearest" });
-                        source.classList.add("is-highlighted");
-                        setTimeout(() => source.classList.remove("is-highlighted"), 1200);
-                    });
+            contentWrap.append(citationSection);
+            body.querySelectorAll("[data-citation-label]").forEach(marker => {
+                marker.addEventListener("click", () => {
+                    const source = [...citationSection.querySelectorAll("[data-citation-label]")]
+                        .find(item => item.dataset.citationLabel === marker.dataset.citationLabel);
+                    if (!source) return;
+                    source.open = true;
+                    source.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                    source.classList.add("is-highlighted");
+                    setTimeout(() => source.classList.remove("is-highlighted"), 1200);
                 });
-            }
+            });
             contentWrap.append(createAssistantActions(content));
         }
 
