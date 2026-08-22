@@ -16,6 +16,22 @@ public interface IDocumentService
         string uploadedByName,
         CancellationToken cancellationToken = default);
 
+    Task<DocumentSummary> QueueUploadAsync(
+        int courseId,
+        string title,
+        string? chapter,
+        string originalFileName,
+        DocumentType fileType,
+        Stream fileStream,
+        long fileSizeBytes,
+        Guid uploadedById,
+        string uploadedByName,
+        CancellationToken cancellationToken = default);
+
+    Task ProcessQueuedUploadAsync(
+        DocumentProcessingJob job,
+        CancellationToken cancellationToken = default);
+
     Task<DocumentSummary> GetByIdAsync(Guid id, CancellationToken cancellationToken = default);
 
     Task<IReadOnlyList<DocumentSummary>> GetAllAsync(

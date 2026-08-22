@@ -5,6 +5,27 @@
 }
 
 <p><a asp-page="/Assignment2/Documents/Index">← Quay lại danh sách</a></p>
+
+<section class="realtime-monitor"
+         data-document-realtime
+         data-course-id="@Model.Document.CourseId"
+         data-document-id="@Model.Document.Id">
+    <header class="realtime-monitor-header">
+        <div>
+            <span class="realtime-monitor-kicker">SignalR · BackgroundService</span>
+            <strong>Tiến trình lập chỉ mục realtime</strong>
+        </div>
+        <span class="realtime-connection" data-document-connection>
+            <i aria-hidden="true"></i>
+            Đang kết nối
+        </span>
+    </header>
+    <ol class="realtime-events" data-document-events aria-live="polite">
+        <li>Đang chờ sự kiện xử lý tài liệu...</li>
+    </ol>
+</section>
+
+<div data-document-content>
 <h1>@Model.Document.Title</h1>
 <p><span class="status-badge status-@Model.Document.Status">@Model.Document.Status</span></p>
 
@@ -24,6 +45,21 @@
     </tbody>
 </table>
 
-<form method="post" asp-page-handler="Delete" asp-route-id="@Model.Document.Id" onsubmit="return confirm('Xóa tài liệu này?');">
-    <button class="btn btn-danger" type="submit">Xóa tài liệu</button>
-</form>
+<div class="details-actions">
+    <a class="btn btn-secondary" asp-page="/Assignment2/Documents/Index">Về danh sách</a>
+    @if (Model.Document.Status == DocumentStatus.Indexed)
+    {
+        <a class="btn"
+           asp-page="/Assignment2/Documents/Chunks"
+           asp-route-id="@Model.Document.Id">Xem @Model.Document.ChunkCount chunks</a>
+    }
+    <form method="post" asp-page-handler="Delete" asp-route-id="@Model.Document.Id" onsubmit="return confirm('Xóa tài liệu này?');" class="inline-form">
+        <button class="btn btn-danger" type="submit">Xóa tài liệu</button>
+    </form>
+</div>
+</div>
+
+@section Scripts {
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/documents-realtime.js" asp-append-version="true"></script>
+}

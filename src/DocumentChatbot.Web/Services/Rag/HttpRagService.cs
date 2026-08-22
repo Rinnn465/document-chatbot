@@ -49,6 +49,7 @@ public sealed class HttpRagService(
 
         return new Citation(
             chunkId,
+            source.ChunkIndex,
             documentId,
             documentName,
             source.Chapter,
@@ -78,6 +79,7 @@ public sealed class HttpRagService(
     {
         public string? Source { get; init; }
         public string? ChunkId { get; init; }
+        public int? ChunkIndex { get; init; }
         public string? DocumentId { get; init; }
         public string? DocumentName { get; init; }
         public string? Chapter { get; init; }

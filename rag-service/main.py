@@ -36,6 +36,7 @@ class AskRequest(ApiModel):
 
 class CitationResponse(ApiModel):
     chunk_id: str
+    chunk_index: int | None = None
     document_id: str
     document_name: str
     chapter: str | None = None

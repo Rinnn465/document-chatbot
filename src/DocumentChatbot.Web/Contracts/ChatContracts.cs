@@ -12,6 +12,7 @@ public sealed record ChatErrorResponse(string Message);
 
 public sealed record ChatCitationResponse(
     int Label,
+    int? ChunkIndex,
     string DocumentName,
     string? Chapter,
     int? PageNumber,
@@ -20,6 +21,7 @@ public sealed record ChatCitationResponse(
 {
     public static ChatCitationResponse From(Citation citation, int index) => new(
         index + 1,
+        citation.ChunkIndex,
         citation.DocumentName,
         citation.Chapter,
         citation.PageNumber,

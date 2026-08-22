@@ -33,6 +33,9 @@ builder.Services.AddScoped<IDocumentService, DocumentService>();
 builder.Services.AddScoped<IChatSessionRepository, SqlChatSessionRepository>();
 builder.Services.AddScoped<IDocumentRepository, SqlDocumentRepository>();
 builder.Services.AddSingleton<ITextExtractor, TextExtractor>();
+builder.Services.AddSingleton<IDocumentProcessingQueue, DocumentProcessingQueue>();
+builder.Services.AddSingleton<IDocumentStatusNotifier, SignalRDocumentStatusNotifier>();
+builder.Services.AddHostedService<DocumentProcessingWorker>();
 
 builder.Services.Configure<RagServiceOptions>(
     builder.Configuration.GetSection(RagServiceOptions.SectionName));
@@ -119,6 +122,7 @@ app.MapControllerRoute(
 app.MapControllers();
 app.MapRazorPages();
 app.MapHub<ChatHub>("/hubs/chat");
+app.MapHub<DocumentHub>("/hubs/documents");
 
 app.Run();
 

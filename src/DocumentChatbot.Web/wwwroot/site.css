@@ -54,6 +54,154 @@
     --font-mono: "Cascadia Code", Consolas, monospace;
 }
 
+/* Assignment 2: realtime document indexing monitor */
+.realtime-monitor {
+    margin: 0 0 1.5rem;
+    border: 1px solid var(--border-subtle);
+    border-radius: 14px;
+    background: var(--bg-surface);
+    overflow: hidden;
+}
+
+.realtime-monitor-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.1rem;
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.realtime-monitor-header > div {
+    display: grid;
+    gap: .2rem;
+}
+
+.realtime-monitor-kicker {
+    color: var(--text-muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: .72rem;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+
+.realtime-connection {
+    display: inline-flex;
+    align-items: center;
+    gap: .45rem;
+    color: var(--text-muted);
+    font-size: .82rem;
+    white-space: nowrap;
+}
+
+.realtime-connection i {
+    width: .58rem;
+    height: .58rem;
+    border-radius: 50%;
+    background: #777;
+    box-shadow: 0 0 0 4px rgb(127 127 127 / 12%);
+}
+
+.realtime-connection[data-state="connected"] i {
+    background: #d9d9d9;
+    box-shadow: 0 0 0 4px rgb(255 255 255 / 12%);
+}
+
+.realtime-connection[data-state="connecting"] i {
+    animation: realtime-pulse 1s ease-in-out infinite;
+}
+
+.realtime-connection[data-state="disconnected"] i {
+    background: #9c5656;
+}
+
+.realtime-events {
+    display: grid;
+    gap: 0;
+    max-height: 18rem;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    list-style: none;
+}
+
+.realtime-events > li {
+    padding: .9rem 1.1rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border-subtle);
+}
+
+.realtime-events > li:last-child {
+    border-bottom: 0;
+}
+
+.realtime-event > div {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+}
+
+.realtime-event > span {
+    display: block;
+    margin-top: .25rem;
+    color: var(--text-main);
+    font-weight: 650;
+}
+
+.realtime-event p {
+    margin: .3rem 0 0;
+    color: var(--text-muted);
+    font-size: .86rem;
+}
+
+.realtime-event time {
+    color: var(--text-muted);
+    font-family: ui-monospace, SFMono-Regular, Consolas, monospace;
+    font-size: .72rem;
+}
+
+.knowledge-update-toast {
+    position: fixed;
+    z-index: 1000;
+    right: 1.25rem;
+    bottom: 1.25rem;
+    display: grid;
+    gap: .3rem;
+    width: min(24rem, calc(100vw - 2rem));
+    padding: 1rem 1.1rem;
+    border: 1px solid #4b4b4b;
+    border-radius: 12px;
+    background: #1c1c1c;
+    color: #f2f2f2;
+    box-shadow: 0 16px 40px rgb(0 0 0 / 35%);
+    opacity: 0;
+    transform: translateY(1rem);
+    pointer-events: none;
+    transition: opacity .2s ease, transform .2s ease;
+}
+
+.knowledge-update-toast.is-visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+
+.knowledge-update-toast span,
+.knowledge-update-toast small {
+    color: #aaa;
+}
+
+@keyframes realtime-pulse {
+    50% { opacity: .35; }
+}
+
+@media (max-width: 720px) {
+    .realtime-monitor-header {
+        align-items: flex-start;
+        flex-direction: column;
+    }
+}
+
 *, *::before, *::after {
     box-sizing: border-box;
 }

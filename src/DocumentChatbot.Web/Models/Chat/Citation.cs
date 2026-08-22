@@ -2,6 +2,7 @@ namespace DocumentChatbot.Web.Models;
 
 public sealed record Citation(
     string ChunkId,
+    int? ChunkIndex,
     string DocumentId,
     string DocumentName,
     string? Chapter,

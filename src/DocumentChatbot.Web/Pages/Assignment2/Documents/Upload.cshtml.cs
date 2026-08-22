@@ -11,8 +11,11 @@ namespace DocumentChatbot.Web.Pages.Assignment2.Documents;
 [Authorize(Policy = AppPolicies.SubjectLeaderOnly)]
 public sealed class UploadModel(
     IDocumentService documentService,
+    ICourseService courseService,
     IUserContext userContext) : PageModel
 {
+    private const int DemoCourseId = 1;
+
     private static readonly Dictionary<string, DocumentType> AllowedExtensions = new(StringComparer.OrdinalIgnoreCase)
     {
         [".pdf"] = DocumentType.Pdf,
@@ -25,10 +28,30 @@ public sealed class UploadModel(
     [BindProperty]
     public InputModel Input { get; set; } = new();
 
-    public void OnGet() { }
+    public CourseSummary Course { get; private set; } = null!;
+
+    public async Task<IActionResult> OnGetAsync(CancellationToken cancellationToken)
+    {
+        var course = await GetManagedCourseAsync(cancellationToken);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        Course = course;
+        return Page();
+    }
 
     public async Task<IActionResult> OnPostAsync(CancellationToken cancellationToken)
     {
+        var course = await GetManagedCourseAsync(cancellationToken);
+        if (course is null)
+        {
+            return NotFound();
+        }
+
+        Course = course;
+
         if (!AllowedExtensions.TryGetValue(Path.GetExtension(Input.File?.FileName ?? string.Empty), out var fileType))
         {
             ModelState.AddModelError("Input.File", "Chỉ chấp nhận tệp .pdf, .docx và .pptx.");
@@ -45,18 +68,18 @@ public sealed class UploadModel(
         if (!ModelState.IsValid) return Page();
 
         await using var stream = Input.File!.OpenReadStream();
-        var document = await documentService.UploadAsync(
-            1,
+        var document = await documentService.QueueUploadAsync(
+            DemoCourseId,
             Input.Title, Input.Chapter, Input.File.FileName, fileType, stream,
             Input.File.Length, userContext.UserId, userContext.DisplayName, cancellationToken);
 
-        if (document.Status == DocumentStatus.Indexed)
-            TempData["Success"] = $"Đã upload và lập chỉ mục tài liệu \"{document.Title}\".";
-        else
-            TempData["Error"] = $"Đã nhận tài liệu nhưng lập chỉ mục thất bại: {document.ProcessingError}";
+        TempData["Success"] = $"Đã upload tài liệu \"{document.Title}\". BackgroundService đang xử lý và SignalR sẽ cập nhật trạng thái realtime.";
 
         return RedirectToPage("/Assignment2/Documents/Details", new { id = document.Id });
     }
+
+    private Task<CourseSummary?> GetManagedCourseAsync(CancellationToken cancellationToken) =>
+        courseService.GetManagedCourseAsync(userContext.UserId, DemoCourseId, cancellationToken);
 
     public sealed class InputModel
     {

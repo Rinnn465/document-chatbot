@@ -8,7 +8,7 @@
 <section class="page-heading compact">
     <div>
         <h1>Upload tài liệu</h1>
-        <p>PageModel nhận form, kiểm tra tệp và gọi cùng một DocumentService mà bản MVC sử dụng.</p>
+        <p>Thêm PDF, DOCX hoặc PPTX để hệ thống trích xuất, chia đoạn và lập chỉ mục cho @Model.Course.Code.</p>
     </div>
 </section>
 
@@ -30,5 +30,16 @@
         <span asp-validation-for="Input.File"></span>
     </div>
     <p class="field-hint">Dung lượng tối đa 25 MB.</p>
-    <button class="btn" type="submit">Upload và lập chỉ mục</button>
+    <aside class="upload-process-note">
+        <strong>Sau khi upload</strong>
+        <ol>
+            <li>C# trích xuất nội dung theo trang PDF, slide PPTX hoặc đoạn DOCX.</li>
+            <li>Python chia nội dung thành chunks và tạo embedding.</li>
+            <li>Chroma lưu chỉ mục để chatbot truy xuất.</li>
+        </ol>
+    </aside>
+    <div class="form-actions">
+        <a class="btn btn-secondary" asp-page="/Assignment2/Documents/Index">Hủy</a>
+        <button class="btn" type="submit">Upload và lập chỉ mục</button>
+    </div>
 </form>

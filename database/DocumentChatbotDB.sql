@@ -202,6 +202,7 @@ BEGIN TRY
             ChatMessageId   uniqueidentifier NOT NULL,
             DocumentId      uniqueidentifier NOT NULL,
             ChunkId         varchar(150)     NOT NULL,
+            ChunkIndex      int              NULL,
             PageNumber      int              NULL,
             SlideNumber     int              NULL,
             Excerpt         nvarchar(1000)   NOT NULL,
@@ -213,6 +214,12 @@ BEGIN TRY
             CONSTRAINT FK_Citations_Documents FOREIGN KEY (DocumentId)
                 REFERENCES dbo.Documents(DocumentId) ON DELETE CASCADE
         );
+    END;
+
+    IF COL_LENGTH(N'dbo.Citations', N'ChunkIndex') IS NULL
+    BEGIN
+        ALTER TABLE dbo.Citations
+            ADD ChunkIndex int NULL;
     END;
 
     IF NOT EXISTS

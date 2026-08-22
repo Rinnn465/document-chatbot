@@ -78,6 +78,7 @@ public sealed class CitationEntity
     public Guid ChatMessageId { get; set; }
     public Guid DocumentId { get; set; }
     public string ChunkId { get; set; } = string.Empty;
+    public int? ChunkIndex { get; set; }
     public int? PageNumber { get; set; }
     public int? SlideNumber { get; set; }
     public string Excerpt { get; set; } = string.Empty;

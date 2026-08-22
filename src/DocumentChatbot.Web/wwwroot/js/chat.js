@@ -334,6 +334,9 @@
 
     function formatCitationLocation(citation) {
         const parts = [];
+        if (citation.chunkIndex != null && citation.chunkIndex > 0) {
+            parts.push(`Chunk ${citation.chunkIndex}`);
+        }
         if (citation.chapter?.trim()) parts.push(citation.chapter.trim());
         if (citation.slideNumber != null) {
             parts.push(`Slide ${citation.slideNumber}`);

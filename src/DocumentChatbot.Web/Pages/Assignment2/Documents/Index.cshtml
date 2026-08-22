@@ -6,45 +6,82 @@
 
 <section class="page-heading">
     <div>
-        <p class="eyebrow">Razor Pages presentation</p>
+        <p class="eyebrow">@Model.Course.Code · @Model.Course.Name</p>
         <h1>Tài liệu PRN222</h1>
     </div>
     <a class="btn" asp-page="/Assignment2/Documents/Upload">Upload tài liệu</a>
 </section>
 
-@if (!Model.Documents.Any())
-{
-    <div class="empty-state">
-        <h2>Chưa có tài liệu</h2>
-        <p>Upload tài liệu đầu tiên để hệ thống có dữ liệu phục vụ hỏi đáp.</p>
-        <a class="btn" asp-page="/Assignment2/Documents/Upload">Upload tài liệu</a>
-    </div>
-}
-else
-{
-    <table>
-        <thead>
-            <tr>
-                <th>Tiêu đề</th><th>Chương</th><th>Tệp</th><th>Trạng thái</th><th>Số chunk</th><th>Ngày upload</th><th></th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var document in Model.Documents)
-        {
-            <tr>
-                <td><a asp-page="/Assignment2/Documents/Details" asp-route-id="@document.Id">@document.Title</a></td>
-                <td>@(document.Chapter ?? "-")</td>
-                <td>@document.OriginalFileName</td>
-                <td><span class="status-badge status-@document.Status">@document.Status</span></td>
-                <td>@document.ChunkCount</td>
-                <td>@document.UploadedAtUtc.ToLocalTime().ToString("g")</td>
-                <td>
-                    <form method="post" asp-page-handler="Delete" asp-route-id="@document.Id" onsubmit="return confirm('Xóa tài liệu này?');" class="inline-form">
-                        <button class="btn btn-danger btn-small" type="submit">Xóa</button>
-                    </form>
-                </td>
-            </tr>
-        }
-        </tbody>
-    </table>
+<section class="realtime-monitor"
+         data-document-realtime
+         data-course-id="@Model.Course.CourseId">
+    <header class="realtime-monitor-header">
+        <div>
+            <span class="realtime-monitor-kicker">SignalR · course:@Model.Course.CourseId</span>
+            <strong>Document indexing live monitor</strong>
+        </div>
+        <span class="realtime-connection" data-document-connection>
+            <i aria-hidden="true"></i>
+            Đang kết nối
+        </span>
+    </header>
+    <ol class="realtime-events" data-document-events aria-live="polite">
+        <li>Đang chờ sự kiện xử lý tài liệu...</li>
+    </ol>
+</section>
+
+<div data-document-content>
+    @if (!Model.Documents.Any())
+    {
+        <div class="empty-state">
+            <h2>Chưa có tài liệu</h2>
+            <p>Upload tài liệu đầu tiên để hệ thống có dữ liệu phục vụ hỏi đáp.</p>
+            <a class="btn" asp-page="/Assignment2/Documents/Upload">Upload tài liệu</a>
+        </div>
+    }
+    else
+    {
+        <table>
+            <thead>
+                <tr>
+                    <th>Tiêu đề</th><th>Chương</th><th>Tệp</th><th>Trạng thái</th><th>Số chunk</th><th>Người upload</th><th>Ngày upload</th><th></th>
+                </tr>
+            </thead>
+            <tbody>
+            @foreach (var document in Model.Documents)
+            {
+                <tr>
+                    <td><a asp-page="/Assignment2/Documents/Details" asp-route-id="@document.Id">@document.Title</a></td>
+                    <td>@(document.Chapter ?? "-")</td>
+                    <td>@document.OriginalFileName</td>
+                    <td><span class="status-badge status-@document.Status">@document.Status</span></td>
+                    <td>@document.ChunkCount</td>
+                    <td>@document.UploadedByName</td>
+                    <td>@document.UploadedAtUtc.ToLocalTime().ToString("g")</td>
+                    <td>
+                        <div class="document-actions">
+                            @if (document.Status == DocumentStatus.Indexed)
+                            {
+                                <a class="btn btn-secondary btn-small"
+                                   asp-page="/Assignment2/Documents/Chunks"
+                                   asp-route-id="@document.Id">Xem chunks</a>
+                            }
+                            <a class="btn btn-secondary btn-small"
+                               asp-page="/Assignment2/Documents/Details"
+                               asp-route-id="@document.Id">Xem</a>
+                            <form method="post" asp-page-handler="Delete" asp-route-id="@document.Id" onsubmit="return confirm('Xóa tài liệu này?');" class="inline-form">
+                                <button class="btn btn-danger btn-small" type="submit">Xóa</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+            }
+            </tbody>
+        </table>
+    }
+</div>
+
+@section Scripts {
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/documents-realtime.js" asp-append-version="true"></script>
 }

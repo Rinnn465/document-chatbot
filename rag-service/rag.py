@@ -409,6 +409,7 @@ class RAGPipeline:
 
         return {
             "chunk_id": chunk_id,
+            "chunk_index": _optional_int(metadata.get("chunk_index")),
             "document_id": document_id,
             "document_name": document_name,
             "chapter": metadata.get("chapter"),

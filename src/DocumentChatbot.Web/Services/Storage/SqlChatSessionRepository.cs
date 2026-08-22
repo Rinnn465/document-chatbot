@@ -185,6 +185,7 @@ public sealed class SqlChatSessionRepository(DocumentChatbotDbContext dbContext)
 
     private static Citation MapCitation(CitationEntity entity) => new(
         entity.ChunkId,
+        entity.ChunkIndex,
         entity.DocumentId.ToString(),
         entity.Document.Title,
         entity.Document.Chapter,
@@ -209,6 +210,7 @@ public sealed class SqlChatSessionRepository(DocumentChatbotDbContext dbContext)
             ChatMessageId = chatMessageId,
             DocumentId = documentId,
             ChunkId = citation.ChunkId,
+            ChunkIndex = citation.ChunkIndex,
             PageNumber = citation.PageNumber,
             SlideNumber = citation.SlideNumber,
             Excerpt = citation.Excerpt,
