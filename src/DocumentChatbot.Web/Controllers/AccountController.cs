@@ -73,7 +73,7 @@ public sealed class AccountController(IUserAccountService userAccountService) : 
 
         return account.RoleName switch
         {
-            AppRoles.Student => RedirectToAction("Index", "ChatPage"),
+            AppRoles.Student => RedirectToPage("/Assignment2/Chat/Index"),
             AppRoles.SubjectLeader => RedirectToAction("Index", "Courses"),
             _ => RedirectToAction("Index", "Home")
         };
@@ -96,7 +96,7 @@ public sealed class AccountController(IUserAccountService userAccountService) : 
     {
         if (user.IsInRole(AppRoles.Student))
         {
-            return RedirectToAction("Index", "ChatPage");
+            return RedirectToPage("/Assignment2/Chat/Index");
         }
 
         if (user.IsInRole(AppRoles.SubjectLeader))

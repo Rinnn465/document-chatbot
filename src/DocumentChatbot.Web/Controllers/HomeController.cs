@@ -11,7 +11,7 @@ public sealed class HomeController : Controller
     {
         if (User.IsInRole(AppRoles.Student))
         {
-            return RedirectToAction("Index", "ChatPage");
+            return RedirectToPage("/Assignment2/Chat/Index");
         }
 
         if (User.IsInRole(AppRoles.SubjectLeader))
