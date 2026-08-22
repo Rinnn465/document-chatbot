@@ -10,17 +10,38 @@ public sealed record ChatStatusResponse(string State, string Message);
 
 public sealed record ChatErrorResponse(string Message);
 
+public sealed record ChatCitationResponse(
+    int Label,
+    string DocumentName,
+    string? Chapter,
+    int? PageNumber,
+    int? SlideNumber,
+    string Excerpt)
+{
+    public static ChatCitationResponse From(Citation citation, int index) => new(
+        index + 1,
+        citation.DocumentName,
+        citation.Chapter,
+        citation.PageNumber,
+        citation.SlideNumber,
+        citation.Excerpt);
+}
+
 public sealed record ChatMessageResponse(
     Guid Id,
     string Role,
     string Content,
-    DateTimeOffset SentAtUtc)
+    DateTimeOffset SentAtUtc,
+    IReadOnlyList<ChatCitationResponse> Citations)
 {
     public static ChatMessageResponse From(ChatMessage message) => new(
         message.Id,
         message.Role.ToString().ToLowerInvariant(),
         message.Content,
-        message.SentAtUtc);
+        message.SentAtUtc,
+        message.Citations
+            .Select(ChatCitationResponse.From)
+            .ToArray());
 }
 
 public sealed record ChatSessionResponse(

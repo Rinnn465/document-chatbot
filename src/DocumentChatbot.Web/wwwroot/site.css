@@ -1167,6 +1167,7 @@ a:hover { color: var(--accent-hover); }
 
 /* Citation Badges */
 .citation-tag {
+    appearance: none;
     display: inline-flex;
     align-items: center;
     gap: .3rem;
@@ -1180,7 +1181,7 @@ a:hover { color: var(--accent-hover); }
     font-size: .78em;
     font-weight: 600;
     vertical-align: baseline;
-    cursor: default;
+    cursor: pointer;
     transition: all 160ms ease;
 }
 
@@ -1190,8 +1191,131 @@ a:hover { color: var(--accent-hover); }
     box-shadow: none;
 }
 
-.citation-icon {
+.citation-tag:focus-visible {
+    outline: 2px solid #bdbdbd;
+    outline-offset: 2px;
+}
+
+/* Verifiable sources attached to an assistant response */
+.message-citations {
+    margin-top: 1.1rem;
+    border-top: 1px solid #303030;
+}
+
+.message-citations-heading {
+    display: flex;
+    align-items: center;
+    gap: .55rem;
+    padding: .8rem 0 .55rem;
+    color: #bdbdbd;
+}
+
+.message-citations-heading strong {
+    font-size: .76rem;
+    font-weight: 650;
+    letter-spacing: .02em;
+}
+
+.message-citations-heading > span {
+    min-width: 1.25rem;
+    height: 1.25rem;
+    display: inline-grid;
+    place-items: center;
+    padding-inline: .3rem;
+    border: 1px solid #484848;
+    border-radius: 4px;
+    color: #a3a3a3;
+    font-family: var(--font-mono);
+    font-size: .66rem;
+}
+
+.citation-source-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border: 1px solid #353535;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+}
+
+.citation-source-list > li + li {
+    border-top: 1px solid #303030;
+}
+
+.citation-source {
+    background: #1b1b1b;
+    transition: background 180ms ease, box-shadow 180ms ease;
+}
+
+.citation-source summary {
+    min-height: 3.5rem;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: .75rem;
+    padding: .7rem .85rem;
+    cursor: pointer;
+    list-style: none;
+}
+
+.citation-source summary::-webkit-details-marker { display: none; }
+.citation-source summary:hover { background: #242424; }
+.citation-source summary:focus-visible {
+    outline: 2px solid #bdbdbd;
+    outline-offset: -2px;
+}
+
+.citation-source-marker {
+    color: #dedede;
+    font-family: var(--font-mono);
     font-size: .72rem;
+    font-weight: 700;
+}
+
+.citation-source-identity {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: .18rem;
+}
+
+.citation-source-identity strong {
+    overflow: hidden;
+    color: #eeeeee;
+    font-size: .8rem;
+    font-weight: 650;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.citation-source-identity small {
+    color: #858585;
+    font-family: var(--font-mono);
+    font-size: .66rem;
+}
+
+.citation-source-chevron {
+    display: grid;
+    place-items: center;
+    color: #777777;
+    transition: transform 180ms ease;
+}
+
+.citation-source[open] .citation-source-chevron { transform: rotate(180deg); }
+
+.citation-source-excerpt {
+    margin: 0 .85rem .85rem 2.75rem;
+    padding: .7rem .85rem;
+    border-left: 2px solid #484848;
+    background: #202020;
+    color: #bdbdbd;
+    font-size: .78rem;
+    line-height: 1.6;
+}
+
+.citation-source.is-highlighted {
+    background: #303030;
+    box-shadow: inset 3px 0 #bdbdbd;
 }
 
 /* Multi-line Code Block */

@@ -103,8 +103,8 @@
     }
 
     function appendInlineMarkdown(parent, value) {
-        // Match bold **...**, code `...`, and citations like [Slide X], [Page X], [S1], [Chương X], [DOC ...]
-        const tokenPattern = /(\*\*[^*\n]+\*\*|`[^`\n]+`|\[(?:Slide|Page|Trang|Chương|Doc|Document|S|Nguồn)[^\]\n]*\])/gi;
+        // Match bold, inline code, and source markers such as [1] or [S1].
+        const tokenPattern = /(\*\*[^*\n]+\*\*|`[^`\n]+`|\[\d+\]|\[(?:Slide|Page|Trang|Chương|Doc|Document|S|Nguồn)[^\]\n]*\])/gi;
         let position = 0;
         for (const match of value.matchAll(tokenPattern)) {
             if (match.index > position) {
@@ -122,9 +122,17 @@
                 code.textContent = token.slice(1, -1);
                 parent.append(code);
             } else if (token.startsWith("[") && token.endsWith("]")) {
-                const citation = document.createElement("span");
+                const labelMatch = token.match(/^\[(?:S)?(\d+)\]$/i);
+                const citation = document.createElement(labelMatch ? "button" : "span");
                 citation.className = "citation-tag";
-                citation.setAttribute("title", `Nguồn trích dẫn: ${token.slice(1, -1)}`);
+                citation.setAttribute("title", labelMatch
+                    ? `Xem nguồn kiểm chứng ${token}`
+                    : `Nguồn trích dẫn: ${token.slice(1, -1)}`);
+                if (labelMatch) {
+                    citation.type = "button";
+                    citation.dataset.citationLabel = labelMatch[1];
+                    citation.setAttribute("aria-label", `Xem nguồn kiểm chứng ${labelMatch[1]}`);
+                }
                 
                 const text = document.createElement("span");
                 text.textContent = token.slice(1, -1);
@@ -324,6 +332,84 @@
         return bar;
     }
 
+    function formatCitationLocation(citation) {
+        const parts = [];
+        if (citation.chapter?.trim()) parts.push(citation.chapter.trim());
+        if (citation.slideNumber != null) {
+            parts.push(`Slide ${citation.slideNumber}`);
+        } else if (citation.pageNumber != null) {
+            parts.push(`Trang ${citation.pageNumber}`);
+        }
+        return parts.join(" · ");
+    }
+
+    function createCitationSection(citations) {
+        const validCitations = (citations ?? [])
+            .filter(citation => citation?.documentName?.trim());
+        if (validCitations.length === 0) return null;
+
+        const section = document.createElement("section");
+        section.className = "message-citations";
+        section.setAttribute("aria-label", "Nguồn kiểm chứng");
+
+        const heading = document.createElement("div");
+        heading.className = "message-citations-heading";
+
+        const title = document.createElement("strong");
+        title.textContent = "Nguồn kiểm chứng";
+        const count = document.createElement("span");
+        count.textContent = validCitations.length.toString();
+        count.setAttribute("aria-label", `${validCitations.length} nguồn`);
+        heading.append(title, count);
+
+        const list = document.createElement("ol");
+        list.className = "citation-source-list";
+
+        validCitations.forEach((citation, index) => {
+            const label = String(citation.label ?? index + 1);
+            const item = document.createElement("li");
+
+            const details = document.createElement("details");
+            details.className = "citation-source";
+            details.dataset.citationLabel = label;
+
+            const summary = document.createElement("summary");
+            const marker = document.createElement("span");
+            marker.className = "citation-source-marker";
+            marker.textContent = `[${label}]`;
+
+            const identity = document.createElement("span");
+            identity.className = "citation-source-identity";
+            const documentName = document.createElement("strong");
+            documentName.textContent = citation.documentName.trim();
+            identity.append(documentName);
+
+            const locationText = formatCitationLocation(citation);
+            if (locationText) {
+                const location = document.createElement("small");
+                location.textContent = locationText;
+                identity.append(location);
+            }
+
+            const chevron = document.createElement("span");
+            chevron.className = "citation-source-chevron";
+            chevron.setAttribute("aria-hidden", "true");
+            chevron.innerHTML = `<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"></polyline></svg>`;
+
+            summary.append(marker, identity, chevron);
+
+            const excerpt = document.createElement("blockquote");
+            excerpt.className = "citation-source-excerpt";
+            excerpt.textContent = citation.excerpt?.trim() || "Không có đoạn trích để hiển thị.";
+            details.append(summary, excerpt);
+            item.append(details);
+            list.append(item);
+        });
+
+        section.append(heading, list);
+        return section;
+    }
+
     function appendMessage(role, content, options = {}) {
         feed.querySelector("[data-chat-empty]")?.remove();
 
@@ -363,6 +449,21 @@
         contentWrap.append(meta, body);
 
         if (role === "assistant" && !options.error) {
+            const citationSection = createCitationSection(options.citations);
+            if (citationSection) {
+                contentWrap.append(citationSection);
+                body.querySelectorAll("[data-citation-label]").forEach(marker => {
+                    marker.addEventListener("click", () => {
+                        const source = [...citationSection.querySelectorAll("[data-citation-label]")]
+                            .find(item => item.dataset.citationLabel === marker.dataset.citationLabel);
+                        if (!source) return;
+                        source.open = true;
+                        source.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                        source.classList.add("is-highlighted");
+                        setTimeout(() => source.classList.remove("is-highlighted"), 1200);
+                    });
+                });
+            }
             contentWrap.append(createAssistantActions(content));
         }
 
@@ -524,6 +625,7 @@
             session.messages.forEach(message => {
                 appendMessage(message.role, message.content, {
                     sentAtUtc: message.sentAtUtc,
+                    citations: message.citations,
                     scroll: false
                 });
             });
@@ -719,7 +821,10 @@
                 appendMessage(
                     "assistant",
                     payload.assistantMessage.content,
-                    { sentAtUtc: payload.assistantMessage.sentAtUtc });
+                    {
+                        sentAtUtc: payload.assistantMessage.sentAtUtc,
+                        citations: payload.assistantMessage.citations
+                    });
             }
         }
         renderSessionList();

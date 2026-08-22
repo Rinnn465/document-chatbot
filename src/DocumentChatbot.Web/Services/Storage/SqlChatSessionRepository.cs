@@ -136,7 +136,10 @@ public sealed class SqlChatSessionRepository(DocumentChatbotDbContext dbContext)
                 Enum.Parse<MessageRole>(message.Role, ignoreCase: true),
                 message.Content,
                 AsUtc(message.SentAtUtc),
-                message.Citations.Select(MapCitation).ToArray()));
+                message.Citations
+                    .OrderBy(citation => citation.CitationId)
+                    .Select(MapCitation)
+                    .ToArray()));
         }
 
         return session;

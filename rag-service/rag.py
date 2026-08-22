@@ -544,26 +544,35 @@ def _select_sources_and_clean_answer(
     answer_text: str,
     sources: list[dict[str, Any]],
 ) -> tuple[str, list[dict[str, Any]]]:
-    cited_labels = {
-        label.upper()
-        for label in re.findall(r"\[(S\d+)\]", answer_text, flags=re.IGNORECASE)
+    citation_pattern = re.compile(r"\[(S\d+)\]", flags=re.IGNORECASE)
+    available_sources = {
+        source["label"].upper(): source
+        for source in sources
     }
+    cited_labels = list(dict.fromkeys(
+        match.group(1).upper()
+        for match in citation_pattern.finditer(answer_text)
+        if match.group(1).upper() in available_sources
+    ))
+
     if not cited_labels:
         if not sources:
             return answer_text, []
         fallback_source = dict(sources[0])
-        return answer_text.strip(), [fallback_source]
+        return f"{answer_text.strip()} [1]", [fallback_source]
 
-    selected = [
-        source
-        for source in sources
-        if source["label"].upper() in cited_labels
-    ]
-    if not selected:
-        return answer_text, []
+    selected = [available_sources[label] for label in cited_labels]
+    display_labels = {
+        source_label: str(index)
+        for index, source_label in enumerate(cited_labels, start=1)
+    }
 
-    clean_answer = re.sub(r"\s*\[(S\d+)\]", "", answer_text, flags=re.IGNORECASE).strip()
-    return clean_answer, selected
+    def replace_citation(match: re.Match[str]) -> str:
+        display_label = display_labels.get(match.group(1).upper())
+        return f"[{display_label}]" if display_label else ""
+
+    display_answer = citation_pattern.sub(replace_citation, answer_text).strip()
+    return display_answer, selected
 
 
 def _format_source_log(source: dict[str, Any]) -> str:
