@@ -18,7 +18,7 @@
 
         toast.replaceChildren();
         const label = document.createElement("span");
-        label.textContent = "Kho tri thức PRN222 vừa được cập nhật";
+        label.textContent = "Kho tài liệu PRN222 vừa được cập nhật";
         const title = document.createElement("strong");
         title.textContent = payload.documentTitle;
         const detail = document.createElement("small");
