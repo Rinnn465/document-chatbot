@@ -5,7 +5,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
 from prompt import (
-    LANGUAGE_REPAIR_INSTRUCTION,
+    GROUNDED_RETRY_INSTRUCTION,
     REWRITE_PROMPT,
     SYSTEM_PROMPT,
     build_answer_input,
@@ -24,16 +24,18 @@ class PromptTest(unittest.TestCase):
         self.assertNotIn("voicebot", lowered)
         self.assertNotIn("podcast", lowered)
         self.assertNotIn("mln111", lowered)
-        self.assertIn("luôn trả lời bằng tiếng việt", lowered)
-        self.assertIn("hệ chữ hindi", lowered)
+        self.assertIn("cùng ngôn ngữ với nội dung trong sources", lowered)
+        self.assertIn("question bằng tiếng việt nhưng sources bằng tiếng anh", lowered)
+        self.assertIn("không dịch nội dung sang tiếng việt", lowered)
         self.assertIn("không được mở đầu", lowered)
         self.assertIn("**in đậm**", lowered)
 
-    def test_language_repair_does_not_allow_copying_foreign_characters(self):
-        lowered = LANGUAGE_REPAIR_INSTRUCTION.lower()
+    def test_grounded_retry_keeps_the_cited_source_language(self):
+        lowered = GROUNDED_RETRY_INSTRUCTION.lower()
 
-        self.assertIn("tạo lại toàn bộ", lowered)
-        self.assertIn("không sao chép ký tự lạ", lowered)
+        self.assertIn("language used by the cited sources", lowered)
+        self.assertIn("regardless of the question language", lowered)
+        self.assertIn("do not translate", lowered)
 
     def test_answer_input_separates_history_sources_and_question(self):
         value = build_answer_input(

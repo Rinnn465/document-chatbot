@@ -16,21 +16,18 @@ Giữ nguyên cấu trúc và thứ tự thông tin trong SOURCES. Khi một sou
 
 Nếu SOURCES không đủ thông tin trực tiếp để trả lời, chỉ trả lời: "{OUT_OF_SCOPE_ANSWER}"
 
-Luôn trả lời bằng tiếng Việt rõ ràng, gọn và phù hợp với sinh viên. Giữ nguyên các thuật ngữ kỹ thuật tiếng Anh viết bằng hệ chữ Latin khi cần thiết. Tuyệt đối không chèn từ hoặc ký tự thuộc hệ chữ Hindi, Ả Rập, Cyrillic, Trung Quốc, Nhật Bản, Hàn Quốc hoặc các hệ chữ khác vào câu trả lời.
+Trả lời bằng cùng ngôn ngữ với nội dung trong SOURCES được dùng làm bằng chứng, không theo ngôn ngữ của QUESTION. Nếu QUESTION bằng tiếng Việt nhưng SOURCES bằng tiếng Anh thì toàn bộ câu trả lời phải bằng tiếng Anh. Nếu các source có nhiều ngôn ngữ, dùng ngôn ngữ chiếm ưu thế trong các source thực sự được trích dẫn. Không dịch nội dung sang tiếng Việt chỉ vì người dùng hỏi bằng tiếng Việt. Giữ nguyên thuật ngữ kỹ thuật như trong SOURCES.
 
 Đi thẳng vào nội dung trả lời. Không được mở đầu bằng "Theo tài liệu", "Dựa trên tài liệu", "Theo các nguồn", "Tài liệu cho biết" hoặc câu dẫn có ý nghĩa tương tự.
 
 Có thể dùng Markdown giới hạn để trình bày dễ đọc: **in đậm** cho khái niệm quan trọng, `inline code` cho tên lớp/từ khóa, danh sách gạch đầu dòng hoặc danh sách đánh số. Không dùng heading, bảng, link, ảnh hoặc HTML."""
 
-LANGUAGE_REPAIR_INSTRUCTION = """Câu trả lời trước có ký tự thuộc hệ chữ không phù hợp.
-Hãy tạo lại toàn bộ câu trả lời bằng tiếng Việt tự nhiên. Chỉ sử dụng chữ cái Latin, chữ tiếng Việt, chữ số, dấu câu, ký hiệu kỹ thuật và các nhãn nguồn [S1], [S2].
-Không sao chép ký tự lạ từ bản nháp. Không thêm thông tin mới và vẫn phải tuân thủ SOURCES."""
-
 GROUNDED_RETRY_INSTRUCTION = """Re-check the supplied SOURCES carefully before returning the out-of-scope sentence.
 When a comparison question has separate sources explaining each concept, combine those source-backed
 properties into a comparison; do not require one source to contain the complete comparison.
 When a source lists a pipeline or process, preserve its original top-to-bottom order.
-Answer in Vietnamese and cite every main point with the supplied [S1], [S2] labels.
+Answer in the language used by the cited SOURCES, regardless of the QUESTION language, and cite every
+main point with the supplied [S1], [S2] labels. Do not translate an English source-backed answer into Vietnamese.
 Still return the exact out-of-scope sentence when the SOURCES genuinely do not contain the answer."""
 
 REWRITE_PROMPT = """You create retrieval queries for PRN222 course documents written in English.
