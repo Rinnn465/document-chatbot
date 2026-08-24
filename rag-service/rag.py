@@ -16,7 +16,6 @@ from knowledge_store import KnowledgeSnapshotStore
 from prompt import (
     OUT_OF_SCOPE_ANSWER,
     GROUNDED_RETRY_INSTRUCTION,
-    LANGUAGE_REPAIR_INSTRUCTION,
     REWRITE_PROMPT,
     SYSTEM_PROMPT,
     build_answer_input,
@@ -196,7 +195,7 @@ class RAGPipeline:
             sources.append(self._citation(document, score, label))
 
         answer_input = build_answer_input(question, conversation_history, contexts)
-        answer_text = self._generate_checked_answer(answer_input, SYSTEM_PROMPT)
+        answer_text = self._generate_answer(answer_input, SYSTEM_PROMPT)
 
         if (
             _is_out_of_scope_answer(answer_text)
@@ -205,7 +204,7 @@ class RAGPipeline:
         ):
             _log("[RAG] High-confidence evidence returned OUT_OF_SCOPE; retrying once.")
             try:
-                answer_text = self._generate_checked_answer(
+                answer_text = self._generate_answer(
                     answer_input,
                     f"{SYSTEM_PROMPT}\n\n{GROUNDED_RETRY_INSTRUCTION}",
                 )
@@ -236,19 +235,6 @@ class RAGPipeline:
         self._set_cached_value("_answer_cache", answer_cache_key, result)
         return _copy_answer_result(result)
 
-    def _generate_checked_answer(self, answer_input: str, instructions: str) -> str:
-        answer_text = self._generate_answer(answer_input, instructions)
-        if _contains_unexpected_script(answer_text):
-            _log("[RAG] Unexpected writing system detected; regenerating answer.")
-            answer_text = self._generate_answer(
-                answer_input,
-                f"{instructions}\n\n{LANGUAGE_REPAIR_INSTRUCTION}",
-            )
-            if _contains_unexpected_script(answer_text):
-                _log("[RAG] Regenerated answer still contains an unexpected script.")
-                return ""
-        return _remove_contradictory_fallback(answer_text)
-
     def _generate_answer(self, answer_input: str, instructions: str) -> str:
         response = self.client.responses.create(
             model=self.model,
@@ -264,10 +250,11 @@ class RAGPipeline:
             "output_tokens": int(getattr(usage, "output_tokens", 0) or 0),
             "total_tokens": int(getattr(usage, "total_tokens", 0) or 0),
         }
-        return unicodedata.normalize(
+        answer_text = unicodedata.normalize(
             "NFC",
             (getattr(response, "output_text", "") or "").strip(),
         )
+        return _remove_contradictory_fallback(answer_text)
 
     def _rewrite_queries(
         self,
@@ -507,23 +494,6 @@ def _optional_int(value: Any) -> int | None:
         return int(value)
     except (TypeError, ValueError):
         return None
-
-
-_UNEXPECTED_SCRIPT_PATTERN = re.compile(
-    "["
-    "\\u0400-\\u052f"  # Cyrillic
-    "\\u0590-\\u08ff"  # Hebrew and Arabic
-    "\\u0900-\\u0dff"  # Indic scripts
-    "\\u0e00-\\u0e7f"  # Thai
-    "\\u3040-\\u30ff"  # Japanese kana
-    "\\u3400-\\u9fff"  # CJK ideographs
-    "\\uac00-\\ud7af"  # Hangul
-    "]"
-)
-
-
-def _contains_unexpected_script(value: str) -> bool:
-    return bool(_UNEXPECTED_SCRIPT_PATTERN.search(value))
 
 
 _DOCUMENT_PREFACE_PATTERN = re.compile(
