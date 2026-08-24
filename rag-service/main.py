@@ -51,6 +51,13 @@ class AskResponse(ApiModel):
     grounded: bool
     sources: list[CitationResponse]
     context_count: int
+    usage: "TokenUsage | None" = None
+
+
+class TokenUsage(ApiModel):
+    input_tokens: int = 0
+    output_tokens: int = 0
+    total_tokens: int = 0
 
 
 class DocumentSection(ApiModel):

@@ -1,0 +1,161 @@
+@page "/Assignment2/Reports"
+@model DocumentChatbot.Web.Pages.Assignment2.Reports.IndexModel
+@{
+    ViewData["Title"] = "Báo cáo & thống kê";
+    var indexedPercent = Model.Summary.TotalDocuments == 0
+        ? 0
+        : (int)Math.Round(Model.Summary.IndexedDocuments * 100.0 / Model.Summary.TotalDocuments);
+}
+
+<section class="page-heading report-heading" data-report-realtime data-course-id="@Model.Course.CourseId">
+    <div>
+        <a class="back-link" asp-page="/Assignment2/Documents">← Tài liệu</a>
+        <p class="eyebrow">@Model.Course.Code · @Model.Course.Name</p>
+        <h1>Báo cáo & thống kê</h1>
+        <p>Theo dõi tình trạng kho tài liệu và hiệu quả lập chỉ mục.</p>
+    </div>
+    <a class="btn" asp-page="/Assignment2/Documents/Upload">Upload tài liệu</a>
+</section>
+
+@section Scripts {
+    <script src="~/lib/chartjs/dist/chart.umd.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/js/report-chart.js" asp-append-version="true"></script>
+    <script src="~/js/report-realtime.js" asp-append-version="true"></script>
+}
+
+<div data-report-content>
+<form method="get" class="report-filter">
+    <label>From <input type="date" name="From" value="@Model.From.ToString("yyyy-MM-dd")" /></label>
+    <label>To <input type="date" name="To" value="@Model.To.ToString("yyyy-MM-dd")" /></label>
+    <button class="btn" type="submit">Apply dates</button>
+</form>
+
+<section class="report-stat-grid usage-stat-grid" aria-label="Question usage">
+    <article class="report-stat-card report-stat-primary">
+        <span class="stat-label">Questions in range</span>
+        <strong class="report-stat-value">@Model.Usage.QuestionCount</strong>
+        <span class="report-stat-detail">@Model.From.ToString("d") - @Model.To.ToString("d")</span>
+    </article>
+</section>
+
+<section class="report-panel usage-panel">
+    <header class="report-panel-header">
+        <div><span class="eyebrow">Usage history</span><h2>Questions by day</h2></div>
+        <span class="report-panel-total">@Model.DailyUsage.Count days</span>
+    </header>
+    <div class="usage-line-chart" aria-label="Daily questions line chart">
+        <canvas data-question-chart
+                data-labels='@System.Text.Json.JsonSerializer.Serialize(Model.DailyUsage.Select(item => item.Date.ToString("dd/MM")))'
+                data-values='@System.Text.Json.JsonSerializer.Serialize(Model.DailyUsage.Select(item => item.Questions))'></canvas>
+    </div>
+</section>
+
+<section class="report-panel usage-history-panel">
+    <header class="report-panel-header"><div><span class="eyebrow">Daily history</span><h2>Activity by date</h2></div></header>
+    <div class="usage-history-table-wrap">
+        <table class="usage-history-table">
+            <thead><tr><th>Date</th><th>Questions asked</th></tr></thead>
+            <tbody>
+            @foreach (var day in Model.DailyUsage.AsEnumerable().Reverse())
+            {
+                <tr><td>@day.Date.ToString("dd/MM/yyyy")</td><td>@day.Questions</td></tr>
+            }
+            </tbody>
+        </table>
+    </div>
+</section>
+
+</div>
+
+<section class="report-stat-grid" aria-label="Tổng quan tài liệu">
+    <article class="report-stat-card report-stat-primary">
+        <span class="stat-label">Tổng tài liệu</span>
+        <strong class="report-stat-value">@Model.Summary.TotalDocuments</strong>
+        <span class="report-stat-detail">@indexedPercent% đã sẵn sàng</span>
+    </article>
+    <article class="report-stat-card">
+        <span class="stat-label">Đã lập chỉ mục</span>
+        <strong class="report-stat-value">@Model.Summary.IndexedDocuments</strong>
+        <span class="report-stat-detail">@Model.Summary.TotalChunks chunks</span>
+    </article>
+    <article class="report-stat-card">
+        <span class="stat-label">Đang xử lý</span>
+        <strong class="report-stat-value">@Model.Summary.ProcessingDocuments</strong>
+        <span class="report-stat-detail">Đang chờ hoàn tất</span>
+    </article>
+    <article class="report-stat-card report-stat-warning">
+        <span class="stat-label">Xử lý lỗi</span>
+        <strong class="report-stat-value">@Model.Summary.FailedDocuments</strong>
+        <span class="stat-detail">Cần kiểm tra lại</span>
+    </article>
+</section>
+
+<section class="report-grid">
+    <article class="report-panel">
+        <header class="report-panel-header">
+            <div><span class="eyebrow">Phân loại</span><h2>Loại tệp</h2></div>
+            <span class="report-panel-total">@Model.Summary.TotalDocuments tệp</span>
+        </header>
+        @if (Model.TypeBreakdown.Count == 0)
+        {
+            <p class="report-empty">Chưa có dữ liệu.</p>
+        }
+        else
+        {
+            <div class="breakdown-list">
+            @foreach (var item in Model.TypeBreakdown)
+            {
+                var percent = Model.Summary.TotalDocuments == 0 ? 0 : item.Count * 100 / Model.Summary.TotalDocuments;
+                <div class="breakdown-item">
+                    <div class="breakdown-label"><strong>@item.Label</strong><span>@item.Count</span></div>
+                    <div class="breakdown-track" role="progressbar" aria-valuenow="@percent" aria-valuemin="0" aria-valuemax="100" aria-label="@item.Label @percent phần trăm"><span style="width: @percent%"></span></div>
+                </div>
+            }
+            </div>
+        }
+    </article>
+
+    <article class="report-panel">
+        <header class="report-panel-header">
+            <div><span class="eyebrow">Nội dung</span><h2>Tài liệu theo chương</h2></div>
+        </header>
+        @if (Model.ChapterBreakdown.Count == 0)
+        {
+            <p class="report-empty">Chưa có dữ liệu.</p>
+        }
+        else
+        {
+            <div class="chapter-list">
+            @foreach (var item in Model.ChapterBreakdown)
+            {
+                <div class="chapter-row"><span>@item.Label</span><strong>@item.Count</strong></div>
+            }
+            </div>
+        }
+    </article>
+</section>
+
+<section class="report-panel recent-documents-panel">
+    <header class="report-panel-header">
+        <div><span class="eyebrow">Hoạt động gần đây</span><h2>Tài liệu mới upload</h2></div>
+        <a class="text-link" asp-page="/Assignment2/Documents">Xem tất cả →</a>
+    </header>
+    @if (Model.RecentDocuments.Count == 0)
+    {
+        <p class="report-empty">Chưa có tài liệu nào.</p>
+    }
+    else
+    {
+        <div class="recent-document-list">
+        @foreach (var document in Model.RecentDocuments)
+        {
+            <a class="recent-document-row" asp-page="/Assignment2/Documents/Details" asp-route-id="@document.Id">
+                <span class="recent-document-icon">@document.FileType</span>
+                <span class="recent-document-info"><strong>@document.Title</strong><small>@document.OriginalFileName · @document.UploadedAtUtc.ToLocalTime().ToString("g")</small></span>
+                <span class="status-badge status-@document.Status">@document.Status</span>
+            </a>
+        }
+        </div>
+    }
+</section>

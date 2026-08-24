@@ -69,6 +69,10 @@ public sealed class ChatMessageEntity
     public string Role { get; set; } = string.Empty;
     public string Content { get; set; } = string.Empty;
     public DateTime SentAtUtc { get; set; }
+    public int InputTokens { get; set; }
+    public int OutputTokens { get; set; }
+    public int TotalTokens { get; set; }
+    public ChatSessionEntity ChatSession { get; set; } = null!;
     public List<CitationEntity> Citations { get; set; } = [];
 }
 

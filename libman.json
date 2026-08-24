@@ -8,6 +8,13 @@
       "files": [
         "dist/browser/signalr.min.js"
       ]
+    },
+    {
+      "library": "chart.js@4.4.7",
+      "destination": "src/DocumentChatbot.Web/wwwroot/lib/chartjs/",
+      "files": [
+        "dist/chart.umd.js"
+      ]
     }
   ]
 }

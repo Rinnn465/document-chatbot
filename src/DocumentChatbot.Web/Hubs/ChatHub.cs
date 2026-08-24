@@ -8,7 +8,9 @@ using Microsoft.AspNetCore.SignalR;
 namespace DocumentChatbot.Web.Hubs;
 
 [Authorize(Policy = AppPolicies.StudentOnly)]
-public sealed class ChatHub(IChatService chatService) : Hub
+public sealed class ChatHub(
+    IChatService chatService,
+    IHubContext<DocumentHub> documentHub) : Hub
 {
     private const int Prn222CourseId = 1;
 
@@ -79,6 +81,12 @@ public sealed class ChatHub(IChatService chatService) : Hub
                 "AnswerReceived",
                 AskQuestionResponse.From(result),
                 cancellationToken);
+            await documentHub.Clients
+                .Group(DocumentHub.CourseGroup(Prn222CourseId))
+                .SendAsync(
+                    "ChatUsageUpdated",
+                    new ChatUsageUpdated(Prn222CourseId, DateTimeOffset.UtcNow),
+                    cancellationToken);
             await SendStatusAsync("ready", string.Empty, cancellationToken);
         }
         catch (ArgumentException exception)

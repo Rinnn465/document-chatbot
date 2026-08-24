@@ -119,7 +119,10 @@ public sealed class ChatService(
             MessageRole.Assistant,
             isGrounded ? ragAnswer.Answer : OutOfScopeAnswer,
             now.AddTicks(1),
-            isGrounded ? validCitations : []);
+            isGrounded ? validCitations : [],
+            ragAnswer.InputTokens,
+            ragAnswer.OutputTokens,
+            ragAnswer.TotalTokens);
 
         session.Append(userMessage);
         session.Append(assistantMessage);

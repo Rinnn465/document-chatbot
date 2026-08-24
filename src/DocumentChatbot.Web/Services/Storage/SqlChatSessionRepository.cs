@@ -85,6 +85,9 @@ public sealed class SqlChatSessionRepository(DocumentChatbotDbContext dbContext)
                 Role = message.Role.ToString(),
                 Content = message.Content,
                 SentAtUtc = message.SentAtUtc.UtcDateTime,
+                InputTokens = message.InputTokens,
+                OutputTokens = message.OutputTokens,
+                TotalTokens = message.TotalTokens,
                 Citations = message.Citations
                     .Select(citation => MapCitation(citation, message.Id, existingDocumentIds))
                     .Where(citation => citation is not null)
@@ -139,7 +142,10 @@ public sealed class SqlChatSessionRepository(DocumentChatbotDbContext dbContext)
                 message.Citations
                     .OrderBy(citation => citation.CitationId)
                     .Select(MapCitation)
-                    .ToArray()));
+                    .ToArray(),
+                message.InputTokens,
+                message.OutputTokens,
+                message.TotalTokens));
         }
 
         return session;

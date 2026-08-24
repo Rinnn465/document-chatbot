@@ -65,7 +65,7 @@ public sealed class DocumentChatbotDbContext(DbContextOptions<DocumentChatbotDbC
             entity.ToTable("ChatSessions");
             entity.HasKey(x => x.ChatSessionId);
             entity.Property(x => x.Title).HasMaxLength(255);
-            entity.HasMany(x => x.Messages).WithOne().HasForeignKey(x => x.ChatSessionId)
+            entity.HasMany(x => x.Messages).WithOne(x => x.ChatSession).HasForeignKey(x => x.ChatSessionId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
 
@@ -75,6 +75,9 @@ public sealed class DocumentChatbotDbContext(DbContextOptions<DocumentChatbotDbC
             entity.HasKey(x => x.ChatMessageId);
             entity.Property(x => x.Role).HasMaxLength(10).IsUnicode(false);
             entity.Property(x => x.SentAtUtc).HasPrecision(7);
+            entity.Property(x => x.InputTokens).IsRequired();
+            entity.Property(x => x.OutputTokens).IsRequired();
+            entity.Property(x => x.TotalTokens).IsRequired();
             entity.HasMany(x => x.Citations).WithOne().HasForeignKey(x => x.ChatMessageId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

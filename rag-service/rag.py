@@ -231,6 +231,7 @@ class RAGPipeline:
             "grounded": True,
             "sources": cited_sources,
             "context_count": len(cited_sources),
+            "usage": getattr(self, "_last_usage", None),
         }
         self._set_cached_value("_answer_cache", answer_cache_key, result)
         return _copy_answer_result(result)
@@ -257,6 +258,12 @@ class RAGPipeline:
             text={"verbosity": "low"},
             store=False,
         )
+        usage = getattr(response, "usage", None)
+        self._last_usage = {
+            "input_tokens": int(getattr(usage, "input_tokens", 0) or 0),
+            "output_tokens": int(getattr(usage, "output_tokens", 0) or 0),
+            "total_tokens": int(getattr(usage, "total_tokens", 0) or 0),
+        }
         return unicodedata.normalize(
             "NFC",
             (getattr(response, "output_text", "") or "").strip(),

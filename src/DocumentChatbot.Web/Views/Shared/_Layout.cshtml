@@ -25,6 +25,10 @@
             <div class="account-nav">
                 @if (User.Identity?.IsAuthenticated == true)
                 {
+                    @if (User.IsInRole("SubjectLeader"))
+                    {
+                        <a class="nav-button-report" href="/Assignment2/Reports">Báo cáo</a>
+                    }
                     <div class="user-chip">
                         <span class="user-chip-avatar">@((User.Identity.Name ?? "U")[0].ToString().ToUpperInvariant())</span>
                         <span class="user-chip-name">@User.Identity.Name</span>

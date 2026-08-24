@@ -35,3 +35,7 @@ public sealed record KnowledgeBaseUpdated(
     string DocumentTitle,
     int ChunkCount,
     DateTimeOffset UpdatedAtUtc);
+
+public sealed record ChatUsageUpdated(
+    int CourseId,
+    DateTimeOffset OccurredAtUtc);

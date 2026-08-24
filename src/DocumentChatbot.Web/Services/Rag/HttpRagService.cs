@@ -35,7 +35,8 @@ public sealed class HttpRagService(
             .ToArray();
 
         var isGrounded = payload.Grounded ?? citations.Length > 0;
-        return new RagAnswer(payload.Answer ?? string.Empty, isGrounded, citations);
+        return new RagAnswer(payload.Answer ?? string.Empty, isGrounded, citations,
+            payload.Usage?.InputTokens ?? 0, payload.Usage?.OutputTokens ?? 0, payload.Usage?.TotalTokens ?? 0);
     }
 
     private static Citation MapCitation(RagSource source, int index)
@@ -73,6 +74,14 @@ public sealed class HttpRagService(
         public string? Answer { get; init; }
         public bool? Grounded { get; init; }
         public List<RagSource> Sources { get; init; } = [];
+        public RagUsage? Usage { get; init; }
+    }
+
+    private sealed class RagUsage
+    {
+        public int InputTokens { get; init; }
+        public int OutputTokens { get; init; }
+        public int TotalTokens { get; init; }
     }
 
     private sealed class RagSource

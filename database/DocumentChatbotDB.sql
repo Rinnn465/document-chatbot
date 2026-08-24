@@ -169,6 +169,13 @@ BEGIN TRY
         );
     END;
 
+    IF COL_LENGTH(N'dbo.ChatMessages', N'InputTokens') IS NULL
+        ALTER TABLE dbo.ChatMessages ADD InputTokens int NOT NULL CONSTRAINT DF_ChatMessages_InputTokens DEFAULT (0);
+    IF COL_LENGTH(N'dbo.ChatMessages', N'OutputTokens') IS NULL
+        ALTER TABLE dbo.ChatMessages ADD OutputTokens int NOT NULL CONSTRAINT DF_ChatMessages_OutputTokens DEFAULT (0);
+    IF COL_LENGTH(N'dbo.ChatMessages', N'TotalTokens') IS NULL
+        ALTER TABLE dbo.ChatMessages ADD TotalTokens int NOT NULL CONSTRAINT DF_ChatMessages_TotalTokens DEFAULT (0);
+
     -- Older copies used datetime2(0), which rounded messages to whole seconds
     -- and made their order ambiguous after a session was loaded again.
     IF EXISTS

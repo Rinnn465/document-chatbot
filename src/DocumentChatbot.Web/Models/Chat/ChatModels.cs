@@ -11,7 +11,10 @@ public sealed record RagQuestion(
 public sealed record RagAnswer(
     string Answer,
     bool IsGrounded,
-    IReadOnlyList<Citation> Citations);
+    IReadOnlyList<Citation> Citations,
+    int InputTokens = 0,
+    int OutputTokens = 0,
+    int TotalTokens = 0);
 
 public sealed record AskQuestionResult(
     Guid SessionId,
