@@ -79,11 +79,24 @@ public sealed class IndexModel(
             .AsNoTracking()
             .Where(message => message.ChatSession.CourseId == DemoCourseId &&
                               message.SentAtUtc >= From && message.SentAtUtc < endExclusive)
-            .Select(message => new { message.Role, message.SentAtUtc })
+            .Select(message => new
+            {
+                message.Role,
+                message.SentAtUtc,
+                CitationCount = message.Citations.Count
+            })
             .ToArrayAsync(cancellationToken);
 
+        var assistantAnswers = messages
+            .Where(message => message.Role == nameof(MessageRole.Assistant))
+            .ToArray();
+        var answersWithCitations = assistantAnswers.Count(message => message.CitationCount > 0);
+
         Usage = new UsageSummary(
-            messages.Count(message => message.Role == nameof(MessageRole.User)));
+            messages.Count(message => message.Role == nameof(MessageRole.User)),
+            assistantAnswers.Length,
+            answersWithCitations,
+            assistantAnswers.Length - answersWithCitations);
 
         DailyUsage = Enumerable.Range(0, (To - From).Days + 1)
             .Select(offset => From.AddDays(offset))
@@ -103,6 +116,15 @@ public sealed class IndexModel(
         long TotalFileSizeBytes);
 
     public sealed record BreakdownItem(string Label, int Count);
-    public sealed record UsageSummary(int QuestionCount);
+    public sealed record UsageSummary(
+        int QuestionCount,
+        int AssistantAnswerCount,
+        int AnswersWithCitations,
+        int AnswersWithoutInformation)
+    {
+        public int CitationRate => AssistantAnswerCount == 0
+            ? 0
+            : (int)Math.Round(AnswersWithCitations * 100.0 / AssistantAnswerCount);
+    }
     public sealed record DailyUsagePoint(DateTime Date, int Questions);
 }

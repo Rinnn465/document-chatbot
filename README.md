@@ -36,11 +36,12 @@ Lưu ý: relevance score chỉ thể hiện độ gần của embedding, không 
 
 Dashboard dành cho `SubjectLeader`:
 
-- Tổng số tài liệu và tỷ lệ đã index.
-- Số tài liệu processing/failed và tổng số chunks.
+- Tổng số tài liệu, tỷ lệ đã index, số tài liệu đang xử lý hoặc xử lý lỗi.
+- Tổng số chunks và tổng dung lượng tài liệu đã tải lên.
 - Phân bố tài liệu theo loại file và chương.
 - Danh sách tài liệu upload gần đây.
 - Số câu hỏi theo khoảng ngày và biểu đồ câu hỏi theo ngày.
+- Tổng số câu AI đã trả lời, tỷ lệ câu trả lời có citation và số câu không có thông tin.
 - Tự cập nhật khi trạng thái tài liệu hoặc usage chat thay đổi.
 
 ## Mapping MVC và Razor Pages

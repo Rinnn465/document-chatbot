@@ -41,5 +41,7 @@
         .build();
 
     connection.on("ChatUsageUpdated", scheduleRefresh);
+    connection.on("DocumentProcessingChanged", scheduleRefresh);
+    connection.on("KnowledgeBaseUpdated", scheduleRefresh);
     connection.start().catch(() => undefined);
 })();

@@ -2566,6 +2566,18 @@ body.auth-page {
     grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.document-stat-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.report-section-title {
+    margin: 0 0 1rem;
+}
+
+.report-section-title h2 {
+    margin: .25rem 0 0;
+}
+
 .usage-panel,
 .usage-history-panel {
     margin-bottom: 1.25rem;

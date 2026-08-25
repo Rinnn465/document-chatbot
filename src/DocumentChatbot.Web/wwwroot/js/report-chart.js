@@ -16,7 +16,7 @@
             data: {
                 labels,
                 datasets: [{
-                    label: "Questions",
+                    label: "Câu hỏi",
                     data: values,
                     borderColor: "#d9d9d9",
                     backgroundColor: "rgba(125, 159, 181, 0.18)",
@@ -34,7 +34,7 @@
                 maintainAspectRatio: false,
                 plugins: {
                     legend: { display: false },
-                    tooltip: { callbacks: { label: context => `${context.parsed.y} questions` } }
+                    tooltip: { callbacks: { label: context => `${context.parsed.y} câu hỏi` } }
                 },
                 scales: {
                     x: { ticks: { color: "#9a9a9a" }, grid: { display: false } },
