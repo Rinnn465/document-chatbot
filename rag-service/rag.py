@@ -15,7 +15,6 @@ from embeddings import SentenceTransformerEmbeddings
 from knowledge_store import KnowledgeSnapshotStore
 from prompt import (
     OUT_OF_SCOPE_ANSWER,
-    GROUNDED_RETRY_INSTRUCTION,
     REWRITE_PROMPT,
     SYSTEM_PROMPT,
     build_answer_input,
@@ -39,7 +38,6 @@ class RAGPipeline:
         self.enable_query_rewrite = os.getenv("ENABLE_QUERY_REWRITE", "true").lower() == "true"
         self.model = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
         self.reasoning_effort = os.getenv("OPENAI_REASONING_EFFORT", "low")
-        self.answer_retry_score = float(os.getenv("ANSWER_RETRY_SCORE", "0.60"))
         self._query_rewrite_cache: dict[str, list[str]] = {}
         self._answer_cache: dict[str, dict[str, Any]] = {}
         self._cache_lock = RLock()
@@ -164,7 +162,9 @@ class RAGPipeline:
                 _format_source_log(source)
                 for source in cached_result["sources"]
             )
-            _log(f"[RAG] Grounded answer cache hit: {source_log}")
+            cache_kind = "grounded" if cached_result.get("grounded") else "out-of-scope"
+            cache_sources = f": {source_log}" if source_log else ""
+            _log(f"[RAG] {cache_kind.capitalize()} answer cache hit{cache_sources}")
             return cached_result
 
         english_queries = self._rewrite_queries(question, conversation_history)
@@ -185,7 +185,7 @@ class RAGPipeline:
         _log(f"[RAG] Retrieved candidates: {candidate_log or '(none)'}")
 
         if not relevant:
-            return self._not_grounded()
+            return self._cached_not_grounded(answer_cache_key)
 
         contexts: list[tuple[str, str]] = []
         sources: list[dict[str, Any]] = []
@@ -197,30 +197,17 @@ class RAGPipeline:
         answer_input = build_answer_input(question, conversation_history, contexts)
         answer_text = self._generate_answer(answer_input, SYSTEM_PROMPT)
 
-        if (
-            _is_out_of_scope_answer(answer_text)
-            and max(score for _, score in relevant)
-            >= getattr(self, "answer_retry_score", 0.60)
-        ):
-            _log("[RAG] High-confidence evidence returned OUT_OF_SCOPE; retrying once.")
-            try:
-                answer_text = self._generate_answer(
-                    answer_input,
-                    f"{SYSTEM_PROMPT}\n\n{GROUNDED_RETRY_INSTRUCTION}",
-                )
-            except Exception as exception:
-                _log(f"[RAG] Grounded answer retry failed: {exception}")
-
         if _is_out_of_scope_answer(answer_text):
-            return self._not_grounded()
+            _log("[RAG] Retrieved chunks do not directly answer the question; returning OUT_OF_SCOPE.")
+            return self._cached_not_grounded(answer_cache_key)
 
         answer_text, cited_sources = _select_sources_and_clean_answer(answer_text, sources)
         if not cited_sources:
-            return self._not_grounded()
+            return self._cached_not_grounded(answer_cache_key)
 
         answer_text = _remove_document_preface(answer_text)
         if not answer_text:
-            return self._not_grounded()
+            return self._cached_not_grounded(answer_cache_key)
 
         source_log = ", ".join(_format_source_log(source) for source in cited_sources)
         _log(f"[RAG] Sources used: {source_log}")
@@ -423,6 +410,11 @@ class RAGPipeline:
             "context_count": 0,
         }
 
+    def _cached_not_grounded(self, cache_key: str) -> dict[str, Any]:
+        result = self._not_grounded()
+        self._set_cached_value("_answer_cache", cache_key, result)
+        return _copy_answer_result(result)
+
 
 def _read_secret_env(name: str) -> str:
     direct_value = os.getenv(name, "").strip()
@@ -572,7 +564,8 @@ def _format_retrieval_candidate(document: Any, score: float) -> str:
     elif metadata.get("page_number") is not None:
         location = f" · Page {metadata['page_number']}"
     document_name = metadata.get("document_name") or metadata.get("source") or "Unknown document"
-    return f"{document_name}{location} · score={score:.4f}"
+    excerpt = _compact_excerpt(document.page_content, maximum_length=120)
+    return f"{document_name}{location} · score={score:.4f} · text={excerpt!r}"
 
 
 def _document_chunk_key(document: Any) -> str:

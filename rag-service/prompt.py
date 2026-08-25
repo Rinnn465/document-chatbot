@@ -2,7 +2,7 @@ from collections.abc import Sequence
 
 
 OUT_OF_SCOPE_ANSWER = (
-    "Mình chưa tìm thấy thông tin đủ tin cậy trong tài liệu"
+    "Mình chưa tìm thấy thông tin đủ tin cậy trong tài liệu "
     "để trả lời câu hỏi này."
 )
 
@@ -21,14 +21,6 @@ Trả lời bằng cùng ngôn ngữ với nội dung trong SOURCES được dù
 Đi thẳng vào nội dung trả lời. Không được mở đầu bằng "Theo tài liệu", "Dựa trên tài liệu", "Theo các nguồn", "Tài liệu cho biết" hoặc câu dẫn có ý nghĩa tương tự.
 
 Có thể dùng Markdown giới hạn để trình bày dễ đọc: **in đậm** cho khái niệm quan trọng, `inline code` cho tên lớp/từ khóa, danh sách gạch đầu dòng hoặc danh sách đánh số. Không dùng heading, bảng, link, ảnh hoặc HTML."""
-
-GROUNDED_RETRY_INSTRUCTION = """Re-check the supplied SOURCES carefully before returning the out-of-scope sentence.
-When a comparison question has separate sources explaining each concept, combine those source-backed
-properties into a comparison; do not require one source to contain the complete comparison.
-When a source lists a pipeline or process, preserve its original top-to-bottom order.
-Answer in the language used by the cited SOURCES, regardless of the QUESTION language, and cite every
-main point with the supplied [S1], [S2] labels. Do not translate an English source-backed answer into Vietnamese.
-Still return the exact out-of-scope sentence when the SOURCES genuinely do not contain the answer."""
 
 REWRITE_PROMPT = """You create retrieval queries for PRN222 course documents written in English.
 
